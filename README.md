@@ -1,8 +1,5 @@
 # Analiza wpływu wpisów w mediach społecznościowych na zmiany wartości aktywów finansowych
 
-**Autor:** [Twoje Imię i Nazwisko]  
-**Status Projektu:** Faza 1 (Baseline & Benchmark)
-
 ## 📌 Cel Projektu
 Celem pracy jest opracowanie hybrydowego systemu prognozowania cen aktywów (Kryptowaluty, Indeksy Giełdowe), który łączy:
 1.  **Analizę Techniczną:** Historyczne dane cenowe (OHLCV).
