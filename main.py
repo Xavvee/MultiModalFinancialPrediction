@@ -29,23 +29,23 @@ def main():
             if not os.path.exists(asset_dir):
                 os.makedirs(asset_dir)
 
-            # 1. Random Walk
-            random_walk.run(ticker, asset_dir)
+            # # 1. Random Walk
+            # random_walk.run(ticker, asset_dir)
             
             # 2. ARIMA
             arima.run(ticker, asset_dir)
 
-            # 3. ARIMA (Zwroty - NOWOŚĆ)
+            # 3. ARIMA (Zwroty)
             arima_stationary.run(ticker, asset_dir)
 
-            # 4. LSTM (Ceny)
-            lstm.run(ticker, asset_dir)
+            # # 4. LSTM (Ceny)
+            # lstm.run(ticker, asset_dir)
             
-            # 5. LSTM (Zwroty)
-            lstm_stationary.run(ticker, asset_dir)
+            # # 5. LSTM (Zwroty)
+            # lstm_stationary.run(ticker, asset_dir)
 
-            # 6. DASHBOARD
-            dashboard.run(ticker, asset_dir)
+            # # 6. DASHBOARD
+            # dashboard.run(ticker, asset_dir)
             
         except Exception as e:
             print(f"KRYTYCZNY BŁĄD dla {ticker}: {e}")

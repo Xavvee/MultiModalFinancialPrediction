@@ -26,7 +26,7 @@ def run(ticker, results_dir):
     train_size = int(len(dataset_scaled) * 0.8)
     train_data, test_data = dataset_scaled[0:train_size, :], dataset_scaled[train_size:len(dataset), :]
 
-    LOOK_BACK = 60
+    LOOK_BACK = 15
     X_train, y_train = create_dataset(train_data, LOOK_BACK)
     X_test, y_test = create_dataset(test_data, LOOK_BACK)
 
