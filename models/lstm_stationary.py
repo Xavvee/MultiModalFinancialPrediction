@@ -17,7 +17,7 @@ def create_dataset(dataset, look_back=1):
     return np.array(dataX), np.array(dataY)
 
 def run(ticker, results_dir):
-    print(f"LSTM (Returns) dla {ticker}...")
+    print(f"LSTM (Returns) for {ticker}...")
     prices = get_data(ticker)
     returns = prices.pct_change().dropna()
     
@@ -54,11 +54,11 @@ def run(ticker, results_dir):
     rmse = np.sqrt(mean_squared_error(y_test_inv[0], test_predict_inv[:,0]))
     
     da = calculate_directional_accuracy(y_test_inv[0], test_predict_inv[:,0], is_stationary=True)
-    print(f"      Wynik RMSE: {rmse:.6f} | Dir Acc: {da:.2f}%")
+    print(f"      RMSE: {rmse:.6f} | Directional Accuracy: {da:.2f}%")
 
     plt.figure(figsize=(14, 7))
-    plt.plot(test_dates, y_test_inv[0], label='Rzeczywiste Zmiany', color='green', alpha=0.6)
-    plt.plot(test_dates, test_predict_inv[:,0], label='Predykcja', color='red', alpha=0.8)
+    plt.plot(test_dates, y_test_inv[0], label='Actual Changes', color='green', alpha=0.6)
+    plt.plot(test_dates, test_predict_inv[:,0], label='Prediction', color='red', alpha=0.8)
     
     plt.title(f'{ticker}: LSTM Stationary Forecast\nRMSE={rmse:.4f} | Directional Accuracy={da:.2f}%')
     plt.legend()

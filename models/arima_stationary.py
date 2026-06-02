@@ -7,7 +7,7 @@ from sklearn.metrics import mean_squared_error
 from utils import get_data, calculate_directional_accuracy
 
 def run(ticker, results_dir):
-    print(f"ARIMA (Returns/Stationary) dla {ticker}...")
+    print(f"ARIMA (Returns/Stationary) for {ticker}...")
     prices = get_data(ticker)
     returns = prices.pct_change().dropna()
     
@@ -28,21 +28,21 @@ def run(ticker, results_dir):
         history.append(test.iloc[t])
         
         if t in checkpoints:
-            print(f"      Postęp: {int(t/total*100)}%")
+            print(f"      ARIMA Progress: {int(t/total*100)}%")
 
     predictions_series = pd.Series(predictions, index=test.index)
     rmse = np.sqrt(mean_squared_error(test, predictions_series))
     
     da = calculate_directional_accuracy(test.values, predictions_series.values, is_stationary=True)
-    print(f"      Wynik RMSE: {rmse:.6f} | Dir Acc: {da:.2f}%")
+    print(f"      RMSE: {rmse:.6f} | Directional Accuracy: {da:.2f}%")
 
     plt.figure(figsize=(14, 7))
-    plt.plot(test.index, test, label='Rzeczywiste Zmiany', color='green', alpha=0.5)
-    plt.plot(test.index, predictions_series, label='Predykcja ARIMA', color='red', alpha=0.8, linewidth=1.5)
+    plt.plot(test.index, test, label='Actual Changes', color='green', alpha=0.5)
+    plt.plot(test.index, predictions_series, label='ARIMA Prediction', color='red', alpha=0.8, linewidth=1.5)
     
     plt.title(f'{ticker}: ARIMA Stationary Forecast\nRMSE={rmse:.6f} | Directional Accuracy={da:.2f}%')
-    plt.xlabel('Data')
-    plt.ylabel('Zmiana ceny (%)')
+    plt.xlabel('Date')
+    plt.ylabel('Price Change (%)')
     plt.legend()
     plt.grid(True, alpha=0.3)
 

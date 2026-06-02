@@ -7,21 +7,21 @@ RESULTS_DIR = "results"
 ASSETS = ["BTC-USD", "ETH-USD", "^GSPC"]
 
 def clean_results_directory(directory):
-    """Usuwa całą zawartość katalogu results, żeby mieć czysto przed startem."""
+    """Deleting all contents of the results directory."""
     if os.path.exists(directory):
         shutil.rmtree(directory)
     os.makedirs(directory)
 
 
 def main():
-    print(f"Wyniki trafią do: ./{RESULTS_DIR}/")
+    print(f"Results will be saved to: ./{RESULTS_DIR}/")
     
     clean_results_directory(RESULTS_DIR)
     start_time = time.time()
 
     for ticker in ASSETS:
         print(f"\n" + "="*50)
-        print(f"PRZETWARZANIE AKTYWA: {ticker}")
+        print(f"Processed assets: {ticker}")
         print("="*50)
         
         try:
@@ -30,7 +30,7 @@ def main():
                 os.makedirs(asset_dir)
 
             # # 1. Random Walk
-            # random_walk.run(ticker, asset_dir)
+            random_walk.run(ticker, asset_dir)
             
             # 2. ARIMA
             arima.run(ticker, asset_dir)
@@ -39,21 +39,21 @@ def main():
             arima_stationary.run(ticker, asset_dir)
 
             # # 4. LSTM (Ceny)
-            # lstm.run(ticker, asset_dir)
+            lstm.run(ticker, asset_dir)
             
             # # 5. LSTM (Zwroty)
-            # lstm_stationary.run(ticker, asset_dir)
+            lstm_stationary.run(ticker, asset_dir)
 
             # # 6. DASHBOARD
-            # dashboard.run(ticker, asset_dir)
+            dashboard.run(ticker, asset_dir)
             
         except Exception as e:
-            print(f"KRYTYCZNY BŁĄD dla {ticker}: {e}")
+            print(f"CRITICAL ERROR for {ticker}: {e}")
             import traceback
             traceback.print_exc()
 
     elapsed = time.time() - start_time
-    print(f"\nZakończono wszystko. Czas: {elapsed:.2f} s")
+    print(f"\nFinished! Time: {elapsed:.2f} s")
 
 if __name__ == "__main__":
     main()

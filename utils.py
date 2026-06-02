@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import os
 
 def get_data(ticker="BTC-USD", start="2022-01-01", end="2024-01-01"):
-    print(f"--- Pobieranie danych dla {ticker} ---")
+    print(f"--- Loading data for {ticker} ---")
     data = yf.download(ticker, start=start, end=end)
     if isinstance(data.columns, pd.MultiIndex):
         data.columns = data.columns.get_level_values(0)
@@ -13,9 +13,9 @@ def get_data(ticker="BTC-USD", start="2022-01-01", end="2024-01-01"):
 
 def calculate_directional_accuracy(y_true, y_pred, is_stationary=False):
     """
-    Liczy trafność kierunku.
-    is_stationary=False -> dla CEN (liczymy różnice t - (t-1))
-    is_stationary=True  -> dla ZWROTÓW (liczymy zgodność znaków)
+    Calculates the percentage of correct directional predictions.
+    is_stationary=False -> for PRICE LEVELS (we check if the predicted price is above or below the previous actual price)
+    is_stationary=True  -> for RETURNS (we calculate the sign of the differences)
     """
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
