@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-def get_data(ticker="BTC-USD", start="2022-01-01", end="2024-01-01"):
+def get_data(ticker="BTC-USD", start="2017-01-01", end="2019-12-01"):
     print(f"--- Loading data for {ticker} ---")
     data = yf.download(ticker, start=start, end=end)
     if isinstance(data.columns, pd.MultiIndex):
@@ -43,18 +43,18 @@ def plot_prediction(train, test, prediction, title, filename, metric_name, metri
     plt.figure(figsize=(14, 8))
     
     plt.subplot(2, 1, 1)
-    plt.plot(train.index, train, label='Trening')
-    plt.plot(test.index, test, label='Rzeczywiste (Test)', color='green')
-    plt.plot(test.index, prediction, label='Predykcja', color='red', linestyle='--')
+    plt.plot(train.index, train, label='Training', color='blue')
+    plt.plot(test.index, test, label='Real (Test)', color='green')
+    plt.plot(test.index, prediction, label='Prediction', color='red', linestyle='--')
     plt.title(f"{title}\n{metric_name}={metric_value:.2f} | Dir. Accuracy={dir_acc:.1f}%")
     plt.legend()
     plt.grid(True, alpha=0.3)
     
     plt.subplot(2, 1, 2)
     zoom = 50
-    plt.plot(test.index[-zoom:], test[-zoom:], label='Rzeczywiste', color='green', marker='.')
-    plt.plot(test.index[-zoom:], prediction[-zoom:], label='Predykcja', color='red', linestyle='--', marker='x')
-    plt.title(f"ZOOM (Ostatnie {zoom} dni)")
+    plt.plot(test.index[-zoom:], test[-zoom:], label='Real (Test)', color='green', marker='.')
+    plt.plot(test.index[-zoom:], prediction[-zoom:], label='Prediction', color='red', linestyle='--', marker='x')
+    plt.title(f"ZOOM (Last {zoom} days)")
     plt.legend()
     plt.grid(True, alpha=0.3)
     

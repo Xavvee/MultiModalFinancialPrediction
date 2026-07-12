@@ -13,14 +13,6 @@ env/
 *.parquet
 *.h5
 
-
-models/
-*.pt
-*.pth
-*.bin
-*.onnx
-
-
 results/
 *.png
 *.jpg
