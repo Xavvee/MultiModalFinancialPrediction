@@ -48,7 +48,7 @@ def train_lstm(data_series):
     return y_test_inv[0], test_predict_inv[:,0]
 
 def run(ticker, results_dir):
-    print(f"Generowanie Dashboardu z DA...")
+    print(f"Generating dashboard for {ticker}...")
     prices = get_data(ticker)
     
     y_true_price, y_pred_price = train_lstm(prices)
@@ -66,23 +66,23 @@ def run(ticker, results_dir):
     
     if y_true_price is not None:
         dates_price = prices.index[-len(y_true_price):]
-        ax1.plot(dates_price, y_true_price, label='Rzeczywista Cena', color='green')
-        ax1.plot(dates_price, y_pred_price, label='Predykcja', color='red', linestyle='--')
-        ax1.set_title(f'{ticker} PRICE Model\n(Lag Effect widoczny, DA={da_price:.2f}%)')
+        ax1.plot(dates_price, y_true_price, label='Actual Price', color='green')
+        ax1.plot(dates_price, y_pred_price, label='Prediction', color='red', linestyle='--')
+        ax1.set_title(f'{ticker} PRICE Model\n(Lag Effect, DA={da_price:.2f}%)')
         ax1.legend()
         ax1.grid(True, alpha=0.3)
 
     if y_true_ret is not None:
         dates_ret = returns.index[-len(y_true_ret):]
-        ax2.plot(dates_ret, y_true_ret, label='Rzeczywiste Zmiany', color='green', alpha=0.5)
-        ax2.plot(dates_ret, y_pred_ret, label='Predykcja Zmian', color='blue')
+        ax2.plot(dates_ret, y_true_ret, label='Actual Returns', color='green', alpha=0.5)
+        ax2.plot(dates_ret, y_pred_ret, label='Prediction', color='blue')
         ax2.axhline(0, color='black', linewidth=0.8, linestyle='--')
-        ax2.set_title(f'{ticker} RETURNS Model (Stationary)\n(Prawdziwa zdolność predykcyjna, DA={da_ret:.2f}%)')
+        ax2.set_title(f'{ticker} RETURNS Model (Stationary)\n(Real predictive power, DA={da_ret:.2f}%)')
         ax2.legend()
         ax2.grid(True, alpha=0.3)
 
     save_path = os.path.join(results_dir, f"DASHBOARD_COMPARE.png")
     plt.tight_layout()
     plt.savefig(save_path)
-    print(f"   ✅ Zapisano dashboard: {save_path}")
+    print(f"   Dashboard saved: {save_path}")
     plt.close()

@@ -1,7 +1,7 @@
 import os
 import time
 import shutil
-from models import random_walk, arima, arima_stationary, lstm, lstm_stationary, dashboard
+from models import random_walk, arima, arima_stationary, lstm, lstm_stationary, gru_multimodal, dashboard
 
 RESULTS_DIR = "results"
 ASSETS = ["BTC-USD", "ETH-USD", "^GSPC"]
@@ -29,22 +29,26 @@ def main():
             if not os.path.exists(asset_dir):
                 os.makedirs(asset_dir)
 
-            # # 1. Random Walk
+            # 1. Random Walk
             random_walk.run(ticker, asset_dir)
             
             # 2. ARIMA
             arima.run(ticker, asset_dir)
 
-            # 3. ARIMA (Zwroty)
+            # 3. ARIMA (Returns)
             arima_stationary.run(ticker, asset_dir)
 
-            # # 4. LSTM (Ceny)
+            # 4. LSTM (Prices)
             lstm.run(ticker, asset_dir)
             
-            # # 5. LSTM (Zwroty)
+            # 5. LSTM (Returns)
             lstm_stationary.run(ticker, asset_dir)
 
-            # # 6. DASHBOARD
+            # 6. Multi-Modal GRU (Returns + Dual-Stream Sentiment)
+            # This model automatically skips non-BTC assets internally
+            gru_multimodal.run(ticker, asset_dir, dataset_pkl='full_dataset_weighted.pkl')
+
+            # 7. DASHBOARD
             dashboard.run(ticker, asset_dir)
             
         except Exception as e:
@@ -53,7 +57,7 @@ def main():
             traceback.print_exc()
 
     elapsed = time.time() - start_time
-    print(f"\nFinished! Time: {elapsed:.2f} s")
+    print(f"\nFinished! Total benchmark execution time: {elapsed:.2f} s")
 
 if __name__ == "__main__":
     main()

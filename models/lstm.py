@@ -16,7 +16,7 @@ def create_dataset(dataset, look_back=1):
     return np.array(dataX), np.array(dataY)
 
 def run(ticker, results_dir):
-    print(f"LSTM (Standard) dla {ticker}...")
+    print(f"LSTM (Standard) for {ticker}...")
     prices_series = get_data(ticker)
     dataset = prices_series.values.reshape(-1, 1)
 
