@@ -4,13 +4,17 @@ import os
 import csv
 
 class FeatureEngineer:
-    def __init__(self, input_file='clean_tweets_2025_26.csv', output_file='weighted_tweets_2025_26.csv'):
+    def __init__(self, input_file='data/new_dataset/interim/clean_tweets_2025_26.csv', output_file='data/new_dataset/interim/weighted_tweets_2025_26.csv'):
         self.input_file = input_file
         self.output_file = output_file
 
     def calculate_authority_weights(self):
         print(f"--- STARTING ROBUST AUTHORITY ENGINEERING ---")
-        
+
+        output_dir = os.path.dirname(self.output_file)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+
         with open(self.input_file, 'r', encoding='utf-8') as f_in, \
              open(self.output_file, 'w', encoding='utf-8', newline='') as f_out:
             
@@ -41,5 +45,5 @@ class FeatureEngineer:
         print(f"--- ENGINEERING COMPLETE: Processed {count} rows. ---")
 
 if __name__ == "__main__":
-    engineer = FeatureEngineer(input_file='clean_tweets_2025_26.csv', output_file='weighted_tweets_2025_26.csv')
+    engineer = FeatureEngineer(input_file='data/new_dataset/interim/clean_tweets_2025_26.csv', output_file='data/new_dataset/interim/weighted_tweets_2025_26.csv')
     engineer.calculate_authority_weights()

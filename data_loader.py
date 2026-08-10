@@ -6,7 +6,7 @@ from huggingface_hub import hf_hub_download
 import csv
 
 class DataLoader:
-    def __init__(self, tweets_file_path, output_file='clean_tweets.csv'):
+    def __init__(self, tweets_file_path, output_file='data/new_dataset/interim/clean_tweets_2025_26.csv'):
         """
         Initializes the DataLoader for pure ETL (Extract, Transform, Load) tasks.
         Adapted for the 2025-2026 Kaggle dataset focusing on User Authority.
@@ -41,54 +41,63 @@ class DataLoader:
         text = re.sub(r'\s+', ' ', text).strip()
         return text
 
-    import csv
-
     def process_and_save(self):
         print(f"Starting Robust ETL (Manual Parsing): {self.tweets_path}")
-        
+
+        output_dir = os.path.dirname(self.output_file)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+
         if os.path.exists(self.output_file):
             os.remove(self.output_file)
 
         # Otwieramy plik w sposób absolutnie bezpieczny
         with open(self.tweets_path, 'r', encoding='utf-8', errors='ignore') as f_in, \
-             open(self.output_file, 'w', encoding='utf-8') as f_out:
-            
-            # Zapisujemy nagłówek
-            f_out.write("date,user_name,cleaned_text,user_followers,user_verified\n")
-            
+             open(self.output_file, 'w', encoding='utf-8', newline='') as f_out:
+
             reader = csv.reader(f_in)
             next(reader)  # Pomiń oryginalny nagłówek
-            
+
+            writer = csv.writer(f_out)
+            writer.writerow(['date', 'user_name', 'cleaned_text', 'user_followers', 'user_verified'])
+
             count = 0
             for row in reader:
                 try:
                     # Wiemy, że date jest w kolumnie 8, user w 0, text w 9, followers 4, verified 7
                     # Jeśli wiersz jest za krótki, pomijamy
                     if len(row) < 10: continue
-                    
+
                     date_val = row[8]
                     user_val = row[0]
-                    text_val = row[9] 
+                    text_val = row[9]
                     followers_val = row[4]
                     verified_val = row[7]
-                    
+
+                    # Floor the timestamp to calendar day only ("YYYY-MM-DD ..." -> "YYYY-MM-DD").
+                    # Without this, downstream daily aggregation (groupby('date') in
+                    # nlp_processor.py) groups by exact second and almost never lines
+                    # up with the midnight-floored dates in market_features_*.csv.
+                    if len(date_val) < 10: continue
+                    date_val = date_val[:10]
+
                     # Czyszczenie
                     clean_txt = self.clean_text(text_val)
                     if not self.is_english(clean_txt): continue
-                    
-                    # Zapisujemy po przecinku, dbając o cudzysłowy w tekście
-                    f_out.write(f"{date_val},{user_val},\"{clean_txt}\",{followers_val},{verified_val}\n")
+
+                    # csv.writer escapuje przecinki/cudzysłowy w user_val i clean_txt poprawnie
+                    writer.writerow([date_val, user_val, clean_txt, followers_val, verified_val])
                     count += 1
                     if count % 10000 == 0: print(f"Processed {count} rows...")
-                    
+
                 except Exception:
                     continue
         print(f"ETL Done! Saved {count} rows.")
 
 if __name__ == "__main__":
     # UPDATED FILENAME FOR THE NEW DATASET
-    input_file = 'bitcoin_tweets_2025_26.csv' 
-    output_file = 'clean_tweets_2025_26.csv' 
-    
+    input_file = 'data/new_dataset/raw/bitcoin_tweets_2025_26.csv'
+    output_file = 'data/new_dataset/interim/clean_tweets_2025_26.csv'
+
     loader = DataLoader(input_file, output_file)
     loader.process_and_save()

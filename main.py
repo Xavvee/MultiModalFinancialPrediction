@@ -44,9 +44,9 @@ def main():
             # 5. LSTM (Returns)
             lstm_stationary.run(ticker, asset_dir)
 
-            # 6. Multi-Modal GRU (Returns + Dual-Stream Sentiment)
+            # 6. Multi-Modal GRU (Returns + Whale/Retail Multi-Input Sentiment)
             # This model automatically skips non-BTC assets internally
-            gru_multimodal.run(ticker, asset_dir, dataset_pkl='full_dataset_weighted.pkl')
+            gru_multimodal.run(ticker, asset_dir, dataset_pkl='data/new_dataset/processed/full_dataset_whales_2025_26.pkl')
 
             # 7. DASHBOARD
             dashboard.run(ticker, asset_dir)

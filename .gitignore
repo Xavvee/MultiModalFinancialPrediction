@@ -14,11 +14,11 @@ env/
 *.h5
 
 
-models/
 *.pt
 *.pth
 *.bin
 *.onnx
+data/
 
 
 results/
@@ -32,3 +32,5 @@ results/
 .vscode/
 .idea/
 .DS_Store
+
+magisterka.txt

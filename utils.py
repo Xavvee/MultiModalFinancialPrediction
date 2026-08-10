@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-def get_data(ticker="BTC-USD", start="2022-01-01", end="2024-01-01"):
+def get_data(ticker="BTC-USD", start="2020-01-01", end="2026-03-03"):
     print(f"--- Loading data for {ticker} ---")
     data = yf.download(ticker, start=start, end=end)
     if isinstance(data.columns, pd.MultiIndex):

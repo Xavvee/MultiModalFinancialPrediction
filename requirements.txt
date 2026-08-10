@@ -5,3 +5,11 @@ matplotlib
 statsmodels
 scikit-learn
 tensorflow
+tqdm
+huggingface_hub
+fasttext
+transformers
+torch
+# torch-directml enables GPU acceleration on AMD/DirectML (Windows/WSL2) in nlp_processor.py.
+# On CUDA or CPU-only setups, install plain torch above and drop this line.
+torch-directml

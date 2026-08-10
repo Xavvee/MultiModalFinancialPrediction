@@ -56,13 +56,22 @@ class NLPProcessor:
     def process(self):
         print(f"\n--- DUAL-STREAM NLP PIPELINE (WHALE vs RETAIL) ---")
         df = pd.read_csv(self.tweets_csv, engine='python', on_bad_lines='skip')
-        
+
+        # Floor to calendar day. Existing CSVs generated before this fix still
+        # carry full "YYYY-MM-DD HH:MM:SS" timestamps, which almost never match
+        # the midnight-floored dates in market_features_*.csv once grouped below.
+        df['date'] = df['date'].astype(str).str.slice(0, 10)
+
         if self.sample_size:
             df = df.sample(n=self.sample_size, random_state=42).copy()
         df.reset_index(drop=True, inplace=True)
         
+        output_dir = os.path.dirname(self.output_pkl)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+
         checkpoint_file = self.output_pkl.replace('.pkl', '_checkpoint.csv')
-        
+
         if os.path.exists(checkpoint_file):
             checkpoint_df = pd.read_csv(checkpoint_file)
             start_idx = len(checkpoint_df)
@@ -98,10 +107,20 @@ class NLPProcessor:
         
         # --- NOWA LOGIKA: ROZDZIELENIE KOHORT ---
         print("Aggregating daily sentiment (Splitting Whales and Retail)...")
-        
+
+        # A handful of rows have a corrupted 'date' field (row-misalignment
+        # artifact from a legacy CSV-escaping bug upstream in the raw data),
+        # e.g. literal tweet text instead of a date. Drop those before grouping
+        # so they can't crash the date parsing or land in the wrong day's bucket.
+        valid_date_mask = pd.to_datetime(df['date'], errors='coerce').notna()
+        dropped = (~valid_date_mask).sum()
+        if dropped:
+            print(f"      WARNING: Dropping {dropped} rows with an unparseable 'date' field.")
+        df = df[valid_date_mask]
+
         # Flaga wieloryba: waga > 1.0 (zgodnie z naszym feature_engineer.py)
         df['is_whale'] = df['engagement_weight'] > 1.0
-        
+
         # Grupowanie po dacie oraz fladze wieloryba
         daily_grouped = df.groupby(['date', 'is_whale'])[['finbert_base', 'roberta_base']].mean().unstack()
         
@@ -132,10 +151,10 @@ class NLPProcessor:
 
 if __name__ == "__main__":
     processor_whale = NLPProcessor(
-        tweets_csv='weighted_tweets_2025_26.csv', 
-        market_csv='market_features_2025_26.csv', 
-        output_pkl='full_dataset_whales_2025_26.pkl', 
-        sample_size=None, 
-        batch_size=64 
+        tweets_csv='data/new_dataset/interim/weighted_tweets_2025_26.csv',
+        market_csv='data/new_dataset/market/market_features_2025_26.csv',
+        output_pkl='data/new_dataset/processed/full_dataset_whales_2025_26.pkl',
+        sample_size=None,
+        batch_size=64
     )
     processor_whale.process()
