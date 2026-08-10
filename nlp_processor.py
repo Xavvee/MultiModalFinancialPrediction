@@ -135,19 +135,35 @@ class NLPProcessor:
         daily_grouped.reset_index(inplace=True)
         daily_grouped['date'] = pd.to_datetime(daily_grouped['date'])
         
-        # Jeśli w dany dzień nie było tweetów od wielorybów, wstawiamy 0 (sentyment neutralny)
+        # Jeśli w dany dzień nie było tweetów od wielorybów (ale były retail), wstawiamy 0 (sentyment neutralny)
         daily_grouped = daily_grouped.fillna(0)
-        
+
         print(f"Merging with market features from {self.market_csv}...")
         market_df = pd.read_csv(self.market_csv)
         market_df['date'] = pd.to_datetime(market_df['date'])
-        
-        final_df = pd.merge(market_df, daily_grouped, on='date', how='inner')
+
+        # LEFT join on the full market calendar (BTC trades daily, no gaps) instead
+        # of an inner join, so days with zero tweets stay in the dataset rather than
+        # being silently dropped. The raw 2025-26 tweet collection has real calendar
+        # gaps of its own (only ~201/362 days have any tweets at all) - dropping
+        # those days broke the GRU's look-back windows, which walk across ROW
+        # POSITION, not calendar time, and could silently span up to 25 real days
+        # within a single window when gap days were missing instead of present.
+        final_df = pd.merge(market_df, daily_grouped, on='date', how='left')
         final_df.sort_values('date', inplace=True)
-        
+
+        sentiment_cols = new_cols
+        final_df['sentiment_missing'] = final_df[sentiment_cols].isna().all(axis=1).astype(float)
+        # Forward-fill sentiment through gap days (yesterday's known mood is a
+        # better guess than a false "neutral"); fillna(0) covers any leading gap
+        # before the first day that has tweet data at all.
+        final_df[sentiment_cols] = final_df[sentiment_cols].ffill().fillna(0)
+
         final_df.to_pickle(self.output_pkl)
         print(f"Success! Final dataset saved to {self.output_pkl}")
         print(f"Created Sentiment Columns: {new_cols}")
+        print(f"Days with no tweets at all (forward-filled, flagged via 'sentiment_missing'): "
+              f"{int(final_df['sentiment_missing'].sum())} / {len(final_df)}")
 
 if __name__ == "__main__":
     processor_whale = NLPProcessor(
