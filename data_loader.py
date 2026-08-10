@@ -3,11 +3,13 @@ import re
 import fasttext
 import os
 from huggingface_hub import hf_hub_download
+import csv
 
 class DataLoader:
     def __init__(self, tweets_file_path, output_file='clean_tweets.csv'):
         """
         Initializes the DataLoader for pure ETL (Extract, Transform, Load) tasks.
+        Adapted for the 2025-2026 Kaggle dataset focusing on User Authority.
         """
         self.tweets_path = tweets_file_path
         self.output_file = output_file
@@ -39,73 +41,54 @@ class DataLoader:
         text = re.sub(r'\s+', ' ', text).strip()
         return text
 
+    import csv
+
     def process_and_save(self):
-        """
-        Reads a large CSV in chunks, cleans text, filters English,
-        and appends the raw, unmerged data directly to a new CSV file.
-        """
-        print(f"Starting ETL process: {self.tweets_path} -> {self.output_file}")
+        print(f"Starting Robust ETL (Manual Parsing): {self.tweets_path}")
         
-        # Remove the old file if it exists to start fresh
         if os.path.exists(self.output_file):
             os.remove(self.output_file)
-            print("Removed old output file to start fresh.")
 
-        # LOAD ONLY THE REQUIRED COLUMNS
-        chunk_iterator = pd.read_csv(
-            self.tweets_path, 
-            sep=';', 
-            usecols=['user', 'timestamp', 'replies', 'likes', 'retweets', 'text'], 
-            chunksize=self.chunk_size, 
-            on_bad_lines='skip',
-            engine='python'
-        )
-
-        total_processed = 0
-        total_kept = 0
-
-        for i, chunk in enumerate(chunk_iterator):
-            print(f"Processing chunk {i+1}...")
-
-            # 1. Drop empty values
-            chunk = chunk.dropna(subset=['timestamp', 'text']).copy()
-            initial_len = len(chunk)
-            total_processed += initial_len
+        # Otwieramy plik w sposób absolutnie bezpieczny
+        with open(self.tweets_path, 'r', encoding='utf-8', errors='ignore') as f_in, \
+             open(self.output_file, 'w', encoding='utf-8') as f_out:
             
-            # 2. Text cleaning
-            chunk['cleaned_text'] = chunk['text'].apply(self.clean_text)
+            # Zapisujemy nagłówek
+            f_out.write("date,user_name,cleaned_text,user_followers,user_verified\n")
             
-            # 3. Filter English
-            mask = chunk['cleaned_text'].apply(self.is_english)
-            chunk = chunk[mask].copy()
+            reader = csv.reader(f_in)
+            next(reader)  # Pomiń oryginalny nagłówek
             
-            kept_len = len(chunk)
-            dropped = initial_len - kept_len
-            total_kept += kept_len
-            
-            print(f"   -> Dropped {dropped} tweets. Kept: {kept_len} English tweets.")
-            
-            # 4. Date conversion (Simplifying the timestamp to just Date for easier merging later)
-            chunk['date'] = pd.to_datetime(chunk['timestamp'], errors='coerce').dt.tz_localize(None).dt.floor('D')
-            chunk = chunk.dropna(subset=['date'])
-            
-            # 5. Select final columns to save
-            final_cols = ['date', 'user', 'cleaned_text', 'likes', 'retweets', 'replies']
-            clean_chunk = chunk[final_cols]
-            
-            # 6. Save incrementally to avoid RAM issues
-            clean_chunk.to_csv(self.output_file, mode='a', index=False, header=(i == 0))
-
-        print("\n" + "="*50)
-        print("--- ETL COMPLETE ---")
-        print(f"Total rows processed: {total_processed}")
-        print(f"Total pure English tweets saved: {total_kept}")
-        print(f"Data saved to: {self.output_file}")
-        print("="*50 + "\n")
+            count = 0
+            for row in reader:
+                try:
+                    # Wiemy, że date jest w kolumnie 8, user w 0, text w 9, followers 4, verified 7
+                    # Jeśli wiersz jest za krótki, pomijamy
+                    if len(row) < 10: continue
+                    
+                    date_val = row[8]
+                    user_val = row[0]
+                    text_val = row[9] 
+                    followers_val = row[4]
+                    verified_val = row[7]
+                    
+                    # Czyszczenie
+                    clean_txt = self.clean_text(text_val)
+                    if not self.is_english(clean_txt): continue
+                    
+                    # Zapisujemy po przecinku, dbając o cudzysłowy w tekście
+                    f_out.write(f"{date_val},{user_val},\"{clean_txt}\",{followers_val},{verified_val}\n")
+                    count += 1
+                    if count % 10000 == 0: print(f"Processed {count} rows...")
+                    
+                except Exception:
+                    continue
+        print(f"ETL Done! Saved {count} rows.")
 
 if __name__ == "__main__":
-    input_file = 'tweets.csv' 
-    output_file = 'clean_tweets.csv' 
+    # UPDATED FILENAME FOR THE NEW DATASET
+    input_file = 'bitcoin_tweets_2025_26.csv' 
+    output_file = 'clean_tweets_2025_26.csv' 
     
     loader = DataLoader(input_file, output_file)
     loader.process_and_save()

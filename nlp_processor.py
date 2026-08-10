@@ -8,12 +8,11 @@ import os
 import math
 
 class NLPProcessor:
-    def __init__(self, tweets_csv, market_csv, output_pkl, sample_size=None, use_weights=True, batch_size=64):
+    def __init__(self, tweets_csv, market_csv, output_pkl, sample_size=None, batch_size=64):
         self.tweets_csv = tweets_csv
         self.market_csv = market_csv
         self.output_pkl = output_pkl
         self.sample_size = sample_size
-        self.use_weights = use_weights
         self.batch_size = batch_size
         
         if torch_directml.is_available():
@@ -35,7 +34,6 @@ class NLPProcessor:
         self.roberta_mod.eval()
 
     def get_dual_sentiment_batch(self, texts):
-        """Zwraca dwie listy skalarów dla całej PACZKI tekstów naraz"""
         short_texts = [" ".join(str(t).split()[:400]) if isinstance(t, str) else "" for t in texts]
 
         with torch.no_grad():
@@ -44,7 +42,6 @@ class NLPProcessor:
             f_inputs = {k: v.to(self.device) for k, v in f_inputs.items()}
             f_outputs = self.finbert_mod(**f_inputs)
             f_probs = torch.nn.functional.softmax(f_outputs.logits, dim=-1).cpu().numpy()
-            
             finbert_scores = (f_probs[:, 0] - f_probs[:, 1]).tolist()
 
             # --- ROBERTA BATCH INFERENCE ---
@@ -52,15 +49,13 @@ class NLPProcessor:
             r_inputs = {k: v.to(self.device) for k, v in r_inputs.items()}
             r_outputs = self.roberta_mod(**r_inputs)
             r_probs = torch.nn.functional.softmax(r_outputs.logits, dim=-1).cpu().numpy()
-            
-            # RoBERTa: 0=Negative, 1=Neutral, 2=Positive
             roberta_scores = (r_probs[:, 2] - r_probs[:, 0]).tolist()
 
         return finbert_scores, roberta_scores
 
     def process(self):
-        print(f"\n--- DUAL-STREAM NLP PIPELINE: {'WEIGHTED' if self.use_weights else 'UNWEIGHTED'} ---")
-        df = pd.read_csv(self.tweets_csv)
+        print(f"\n--- DUAL-STREAM NLP PIPELINE (WHALE vs RETAIL) ---")
+        df = pd.read_csv(self.tweets_csv, engine='python', on_bad_lines='skip')
         
         if self.sample_size:
             df = df.sample(n=self.sample_size, random_state=42).copy()
@@ -81,7 +76,6 @@ class NLPProcessor:
             print(f"Starting fresh. Total to process: {len(df)} tweets.")
             
         save_interval = 100_000
-        
         total_batches = math.ceil((len(df) - start_idx) / self.batch_size)
         
         # --- BATCH INFERENCE LOOP ---
@@ -102,38 +96,46 @@ class NLPProcessor:
         df['finbert_base'] = f_scores
         df['roberta_base'] = r_scores
         
-        if self.use_weights and 'engagement_weight' in df.columns:
-            df['finbert_sentiment'] = df['finbert_base'] * df['engagement_weight']
-            df['roberta_sentiment'] = df['roberta_base'] * df['engagement_weight']
-        else:
-            df['finbert_sentiment'] = df['finbert_base']
-            df['roberta_sentiment'] = df['roberta_base']
+        # --- NOWA LOGIKA: ROZDZIELENIE KOHORT ---
+        print("Aggregating daily sentiment (Splitting Whales and Retail)...")
+        
+        # Flaga wieloryba: waga > 1.0 (zgodnie z naszym feature_engineer.py)
+        df['is_whale'] = df['engagement_weight'] > 1.0
+        
+        # Grupowanie po dacie oraz fladze wieloryba
+        daily_grouped = df.groupby(['date', 'is_whale'])[['finbert_base', 'roberta_base']].mean().unstack()
+        
+        # Spłaszczanie nazw kolumn z MultiIndexu
+        new_cols = []
+        for col in daily_grouped.columns:
+            model_name = col[0].replace('_base', '') # finbert lub roberta
+            suffix = "whale" if col[1] == True else "retail"
+            new_cols.append(f"{model_name}_{suffix}")
             
-        df['combined_sentiment'] = (df['finbert_sentiment'] + df['roberta_sentiment']) / 2.0
-            
-        print("Aggregating daily sentiment...")
-        daily_cols = ['finbert_sentiment', 'roberta_sentiment', 'combined_sentiment']
-        daily_sentiment = df.groupby('date')[daily_cols].mean().reset_index()
-        daily_sentiment['date'] = pd.to_datetime(daily_sentiment['date'])
+        daily_grouped.columns = new_cols
+        daily_grouped.reset_index(inplace=True)
+        daily_grouped['date'] = pd.to_datetime(daily_grouped['date'])
+        
+        # Jeśli w dany dzień nie było tweetów od wielorybów, wstawiamy 0 (sentyment neutralny)
+        daily_grouped = daily_grouped.fillna(0)
         
         print(f"Merging with market features from {self.market_csv}...")
         market_df = pd.read_csv(self.market_csv)
         market_df['date'] = pd.to_datetime(market_df['date'])
         
-        final_df = pd.merge(market_df, daily_sentiment, on='date', how='inner')
+        final_df = pd.merge(market_df, daily_grouped, on='date', how='inner')
         final_df.sort_values('date', inplace=True)
         
         final_df.to_pickle(self.output_pkl)
         print(f"Success! Final dataset saved to {self.output_pkl}")
+        print(f"Created Sentiment Columns: {new_cols}")
 
 if __name__ == "__main__":
-
-    processor_weighted = NLPProcessor(
-        'weighted_tweets.csv', 
-        'market_features.csv', 
-        'full_dataset_weighted.pkl', 
+    processor_whale = NLPProcessor(
+        tweets_csv='weighted_tweets_2025_26.csv', 
+        market_csv='market_features_2025_26.csv', 
+        output_pkl='full_dataset_whales_2025_26.pkl', 
         sample_size=None, 
-        use_weights=True,
         batch_size=64 
     )
-    processor_weighted.process()
+    processor_whale.process()

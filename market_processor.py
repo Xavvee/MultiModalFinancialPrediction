@@ -4,7 +4,7 @@ import yfinance as yf
 import os
 
 class MarketProcessor:
-    def __init__(self, tweets_file='weighted_tweets.csv', output_file='market_features.csv', ticker='BTC-USD'):
+    def __init__(self, tweets_file='weighted_tweets_2025_26.csv', output_file='market_features_2025_26.csv', ticker='BTC-USD'):
         self.tweets_file = tweets_file
         self.output_file = output_file
         self.ticker = ticker
@@ -13,12 +13,21 @@ class MarketProcessor:
         print(f"--- STARTING MARKET FEATURE ENGINEERING ---")
         
         print(f"Scanning {self.tweets_file} for date ranges...")
-        dates = pd.read_csv(self.tweets_file, usecols=['date'])['date']
-        start_date = pd.to_datetime(dates.min())
-        end_date = pd.to_datetime(dates.max())
+        
+        df_dates = pd.read_csv(
+            self.tweets_file, 
+            usecols=['date'], 
+            on_bad_lines='skip', 
+            engine='python'
+        )
+        
+        # MAGICZNA SZTUCZKA: errors='coerce' zamienia teksty tweetów na NaT, a dropna() je usuwa
+        valid_dates = pd.to_datetime(df_dates['date'], errors='coerce').dropna()
+        
+        start_date = valid_dates.min()
+        end_date = valid_dates.max()
         
         print(f"Downloading {self.ticker} data from {start_date.date()} to {end_date.date()}...")
-
 
         fetch_start = start_date - pd.Timedelta(days=14) 
         market_df = yf.download(self.ticker, start=fetch_start, end=end_date + pd.Timedelta(days=1))
@@ -37,7 +46,6 @@ class MarketProcessor:
         market_df['momentum_3d'] = market_df['Close'].pct_change(periods=3)
         market_df['momentum_7d'] = market_df['Close'].pct_change(periods=7)
         
-
         market_df['volatility_7d'] = market_df['daily_return'].rolling(window=7).std()
         
         market_df['volume_change'] = market_df['Volume'].pct_change()
@@ -54,8 +62,11 @@ class MarketProcessor:
         print("--- MARKET ENGINEERING COMPLETE ---")
         print(f"Ready indicators saved to {self.output_file}")
         print("="*50 + "\n")
-        print(final_market_df.head())
 
 if __name__ == "__main__":
-    processor = MarketProcessor()
+    processor = MarketProcessor(
+        tweets_file='weighted_tweets_2025_26.csv', 
+        output_file='market_features_2025_26.csv', 
+        ticker='BTC-USD'
+    )
     processor.process_market_data()
