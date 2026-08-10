@@ -24,8 +24,8 @@ def main():
     print("="*50)
     try:
         sentiment_ab_test.plot_sentiment_ab_test(
-            weighted_pkl='full_dataset_weighted.pkl', 
-            unweighted_pkl='dataset_unweighted.pkl', 
+            weighted_pkl='data/old_dataset/processed/full_dataset_weighted.pkl',
+            unweighted_pkl='data/old_dataset/archive/dataset_unweighted.pkl',
             output_file=os.path.join(RESULTS_DIR, 'sentiment_ab_test.png')
         )
     except Exception as e:
@@ -58,7 +58,7 @@ def main():
             lstm_stationary.run(ticker, asset_dir)
 
             # 6. Multi-Modal GRU (Returns + Dual-Stream Sentiment)
-            gru_multimodal.run(ticker, asset_dir, dataset_pkl='full_dataset_weighted.pkl')
+            gru_multimodal.run(ticker, asset_dir, dataset_pkl='data/old_dataset/processed/full_dataset_weighted.pkl')
 
             # 7. DASHBOARD
             dashboard.run(ticker, asset_dir)

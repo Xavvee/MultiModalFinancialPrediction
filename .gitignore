@@ -12,6 +12,7 @@ env/
 *.pkl
 *.parquet
 *.h5
+data/
 
 results/
 *.png
@@ -24,3 +25,5 @@ results/
 .vscode/
 .idea/
 .DS_Store
+
+magisterka.txt

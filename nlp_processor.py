@@ -66,8 +66,12 @@ class NLPProcessor:
             df = df.sample(n=self.sample_size, random_state=42).copy()
         df.reset_index(drop=True, inplace=True)
         
+        output_dir = os.path.dirname(self.output_pkl)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+
         checkpoint_file = self.output_pkl.replace('.pkl', '_checkpoint.csv')
-        
+
         if os.path.exists(checkpoint_file):
             checkpoint_df = pd.read_csv(checkpoint_file)
             start_idx = len(checkpoint_df)
@@ -129,9 +133,9 @@ class NLPProcessor:
 if __name__ == "__main__":
 
     processor_weighted = NLPProcessor(
-        'weighted_tweets.csv', 
-        'market_features.csv', 
-        'full_dataset_weighted.pkl', 
+        'data/old_dataset/interim/weighted_tweets.csv',
+        'data/old_dataset/market/market_features.csv',
+        'data/old_dataset/processed/full_dataset_weighted.pkl',
         sample_size=None, 
         use_weights=True,
         batch_size=64 

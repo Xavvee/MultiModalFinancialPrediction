@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 class FeatureEngineer:
-    def __init__(self, input_file='clean_tweets.csv', output_file='weighted_tweets.csv'):
+    def __init__(self, input_file='data/old_dataset/interim/clean_tweets.csv', output_file='data/old_dataset/interim/weighted_tweets.csv'):
         """
         Initializes the Feature Engineer to calculate engagement weights.
         """
@@ -18,7 +18,11 @@ class FeatureEngineer:
         """
         print(f"--- STARTING FEATURE ENGINEERING ---")
         print(f"Input: {self.input_file} | Output: {self.output_file}")
-        
+
+        output_dir = os.path.dirname(self.output_file)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+
         # Remove the old output file to prevent appending to old data
         if os.path.exists(self.output_file):
             os.remove(self.output_file)

@@ -19,7 +19,7 @@ def create_multivariate_dataset(dataset_features, dataset_target, look_back=1):
         dataY.append(dataset_target[i + look_back])
     return np.array(dataX), np.array(dataY)
 
-def run(ticker, results_dir, dataset_pkl='full_dataset_weighted.pkl'):
+def run(ticker, results_dir, dataset_pkl='data/old_dataset/processed/full_dataset_weighted.pkl'):
     # ==========================================
     # EXPERIMENT TRACKING: Change this name before every new idea!
     experiment_name = "V0_Regression_RMSE"
@@ -50,22 +50,24 @@ def run(ticker, results_dir, dataset_pkl='full_dataset_weighted.pkl'):
     
     df = df.dropna(subset=feature_columns)
     
-    # Scale input features (X)
+    # Input features (X) and target (raw daily return)
     dataset_features = df[feature_columns].values
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    features_scaled = scaler.fit_transform(dataset_features)
-    
-    # TARGET IS NOW CONTINUOUS (Raw Daily Return)
     target_returns = df['daily_return'].values
 
-    # Split into train and test sets (80/20 ratio)
-    train_size = int(len(features_scaled) * 0.8)
-    
-    train_features = features_scaled[0:train_size, :]
+    # Split into train and test sets (80/20 ratio) BEFORE scaling
+    train_size = int(len(dataset_features) * 0.8)
+
+    train_features_raw = dataset_features[0:train_size, :]
     train_target = target_returns[0:train_size]
-    
-    test_features = features_scaled[train_size:len(features_scaled), :]
+
+    test_features_raw = dataset_features[train_size:len(dataset_features), :]
     test_target = target_returns[train_size:len(target_returns)]
+
+    # Fit the scaler on the training split only, then transform both splits,
+    # so test-set statistics never leak into training.
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    train_features = scaler.fit_transform(train_features_raw)
+    test_features = scaler.transform(test_features_raw)
 
     LOOK_BACK = 14 
     

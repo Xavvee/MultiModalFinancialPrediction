@@ -4,7 +4,7 @@ import yfinance as yf
 import os
 
 class MarketProcessor:
-    def __init__(self, tweets_file='weighted_tweets.csv', output_file='market_features.csv', ticker='BTC-USD'):
+    def __init__(self, tweets_file='data/old_dataset/interim/weighted_tweets.csv', output_file='data/old_dataset/market/market_features.csv', ticker='BTC-USD'):
         self.tweets_file = tweets_file
         self.output_file = output_file
         self.ticker = ticker
@@ -48,7 +48,10 @@ class MarketProcessor:
         
         final_cols = ['date', 'Close', 'Volume', 'daily_return', 'momentum_3d', 'momentum_7d', 'volatility_7d', 'volume_change']
         final_market_df = market_df[final_cols]
-        
+
+        output_dir = os.path.dirname(self.output_file)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
         final_market_df.to_csv(self.output_file, index=False)
         print("\n" + "="*50)
         print("--- MARKET ENGINEERING COMPLETE ---")

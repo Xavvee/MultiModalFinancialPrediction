@@ -5,7 +5,7 @@ import os
 from huggingface_hub import hf_hub_download
 
 class DataLoader:
-    def __init__(self, tweets_file_path, output_file='clean_tweets.csv'):
+    def __init__(self, tweets_file_path, output_file='data/old_dataset/interim/clean_tweets.csv'):
         """
         Initializes the DataLoader for pure ETL (Extract, Transform, Load) tasks.
         """
@@ -45,7 +45,11 @@ class DataLoader:
         and appends the raw, unmerged data directly to a new CSV file.
         """
         print(f"Starting ETL process: {self.tweets_path} -> {self.output_file}")
-        
+
+        output_dir = os.path.dirname(self.output_file)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+
         # Remove the old file if it exists to start fresh
         if os.path.exists(self.output_file):
             os.remove(self.output_file)
@@ -104,8 +108,8 @@ class DataLoader:
         print("="*50 + "\n")
 
 if __name__ == "__main__":
-    input_file = 'tweets.csv' 
-    output_file = 'clean_tweets.csv' 
+    input_file = 'data/old_dataset/raw/tweets.csv'
+    output_file = 'data/old_dataset/interim/clean_tweets.csv'
     
     loader = DataLoader(input_file, output_file)
     loader.process_and_save()

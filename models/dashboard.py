@@ -20,11 +20,15 @@ def create_dataset(dataset, look_back=1):
 
 def train_lstm(data_series):
     dataset = data_series.values.reshape(-1, 1)
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    dataset_scaled = scaler.fit_transform(dataset)
 
-    train_size = int(len(dataset_scaled) * 0.8)
-    train_data, test_data = dataset_scaled[0:train_size, :], dataset_scaled[train_size:len(dataset), :]
+    train_size = int(len(dataset) * 0.8)
+    train_raw, test_raw = dataset[0:train_size, :], dataset[train_size:len(dataset), :]
+
+    # Fit the scaler on the training split only, then transform both splits,
+    # so test-set statistics never leak into training.
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    train_data = scaler.fit_transform(train_raw)
+    test_data = scaler.transform(test_raw)
 
     X_train, y_train = create_dataset(train_data, LOOK_BACK)
     X_test, y_test = create_dataset(test_data, LOOK_BACK)
