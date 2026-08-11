@@ -4,7 +4,7 @@ import yfinance as yf
 import os
 
 class MarketProcessor:
-    def __init__(self, tweets_file='data/new_dataset/interim/weighted_tweets_2025_26.csv', output_file='data/new_dataset/market/market_features_2025_26.csv', ticker='BTC-USD'):
+    def __init__(self, tweets_file='data/new_dataset/interim/weighted_tweets_2021_23.csv', output_file='data/new_dataset/market/market_features_2021_23.csv', ticker='BTC-USD'):
         self.tweets_file = tweets_file
         self.output_file = output_file
         self.ticker = ticker
@@ -68,8 +68,8 @@ class MarketProcessor:
 
 if __name__ == "__main__":
     processor = MarketProcessor(
-        tweets_file='data/new_dataset/interim/weighted_tweets_2025_26.csv',
-        output_file='data/new_dataset/market/market_features_2025_26.csv',
+        tweets_file='data/new_dataset/interim/weighted_tweets_2021_23.csv',
+        output_file='data/new_dataset/market/market_features_2021_23.csv',
         ticker='BTC-USD'
     )
     processor.process_market_data()

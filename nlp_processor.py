@@ -6,15 +6,27 @@ from tqdm import tqdm
 import numpy as np
 import os
 import math
+import hashlib
+
+# Sentiment depends only on a tweet's text, so scores are reusable across runs
+# and across datasets that share tweets. This cache is keyed by a hash of
+# cleaned_text and lets a rerun skip inference it has already paid for.
+SENTIMENT_CACHE = 'data/sentiment_cache.parquet'
+
+
+def hash_text(s):
+    return hashlib.blake2b(str(s).encode('utf-8', 'ignore'), digest_size=8).hexdigest()
+
 
 class NLPProcessor:
     def __init__(self, tweets_csv, market_csv, output_pkl, sample_size=None, batch_size=64,
-                 follower_weighted=True):
+                 follower_weighted=True, cache_path=SENTIMENT_CACHE):
         self.tweets_csv = tweets_csv
         self.market_csv = market_csv
         self.output_pkl = output_pkl
         self.sample_size = sample_size
         self.batch_size = batch_size
+        self.cache_path = cache_path
         # Weight each tweet by log1p(user_followers) when averaging a day's
         # sentiment, instead of treating a 3-follower account the same as a
         # 3-million-follower one. Measured slightly higher next-day correlation
@@ -78,39 +90,85 @@ class NLPProcessor:
 
         checkpoint_file = self.output_pkl.replace('.pkl', '_checkpoint.csv')
 
-        if os.path.exists(checkpoint_file):
-            checkpoint_df = pd.read_csv(checkpoint_file)
-            start_idx = len(checkpoint_df)
-            f_scores = checkpoint_df['finbert_base'].tolist()
-            r_scores = checkpoint_df['roberta_base'].tolist()
-            print(f"Resuming from checkpoint! Already processed: {start_idx} / {len(df)} tweets.")
+        # --- RESOLVE SENTIMENT: cache first, inference only for what's missing ---
+        print("Hashing tweet text...")
+        df['text_hash'] = df['cleaned_text'].map(hash_text)
+
+        todo = pd.DataFrame({'text_hash': df['text_hash'].unique()})
+        print(f"{len(df):,} tweets -> {len(todo):,} unique texts "
+              f"({(1 - len(todo)/max(len(df), 1))*100:.1f}% are repeats)")
+
+        if os.path.exists(self.cache_path):
+            cache = pd.read_parquet(self.cache_path)
+            todo = todo.merge(cache, on='text_hash', how='left')
+            hits = todo['finbert'].notna().sum()
+            print(f"Cache: {len(cache):,} entries -> {hits:,} hits "
+                  f"({hits/max(len(todo), 1)*100:.1f}% of unique texts already scored)")
         else:
-            f_scores = []
-            r_scores = []
-            start_idx = 0
-            print(f"Starting fresh. Total to process: {len(df)} tweets.")
-            
-        save_interval = 100_000
-        total_batches = math.ceil((len(df) - start_idx) / self.batch_size)
-        
-        # --- BATCH INFERENCE LOOP ---
-        for i in tqdm(range(start_idx, len(df), self.batch_size), total=total_batches, desc="Dual NLP Batch Inference"):
-            batch_texts = df['cleaned_text'].iloc[i:i+self.batch_size].tolist()
-            
-            f_batch, r_batch = self.get_dual_sentiment_batch(batch_texts)
-            f_scores.extend(f_batch)
-            r_scores.extend(r_batch)
-            
-            current_processed = len(f_scores)
-            if current_processed % save_interval < self.batch_size and current_processed > start_idx:
-                pd.DataFrame({'finbert_base': f_scores, 'roberta_base': r_scores}).to_csv(checkpoint_file, index=False)
-                tqdm.write(f"[Checkpoint] Safety save at {current_processed} tweets.")
-        
-        pd.DataFrame({'finbert_base': f_scores, 'roberta_base': r_scores}).to_csv(checkpoint_file, index=False)
-            
-        df['finbert_base'] = f_scores
-        df['roberta_base'] = r_scores
-        
+            cache = pd.DataFrame(columns=['text_hash', 'finbert', 'roberta'])
+            todo['finbert'] = np.nan
+            todo['roberta'] = np.nan
+            print("Cache: none found, scoring everything from scratch.")
+
+        missing = todo[todo['finbert'].isna()].copy()
+        print(f"Needs inference: {len(missing):,} texts.")
+
+        if len(missing):
+            # Recover the text for each unscored hash (first occurrence is enough,
+            # identical hashes mean identical text).
+            first_text = df.drop_duplicates('text_hash').set_index('text_hash')['cleaned_text']
+            texts = first_text.reindex(missing['text_hash']).tolist()
+
+            f_scores, r_scores, start_idx = [], [], 0
+            if os.path.exists(checkpoint_file):
+                ck = pd.read_csv(checkpoint_file)
+                if len(ck) <= len(texts):
+                    start_idx = len(ck)
+                    f_scores = ck['finbert_base'].tolist()
+                    r_scores = ck['roberta_base'].tolist()
+                    print(f"Resuming from checkpoint: {start_idx:,} / {len(texts):,} already done.")
+                else:
+                    print("Checkpoint is longer than the work queue - ignoring it (stale).")
+
+            save_interval = 100_000
+            total_batches = math.ceil((len(texts) - start_idx) / self.batch_size)
+            for i in tqdm(range(start_idx, len(texts), self.batch_size),
+                          total=total_batches, desc="Dual NLP Batch Inference"):
+                f_batch, r_batch = self.get_dual_sentiment_batch(texts[i:i + self.batch_size])
+                f_scores.extend(f_batch)
+                r_scores.extend(r_batch)
+                done = len(f_scores)
+                if done % save_interval < self.batch_size and done > start_idx:
+                    pd.DataFrame({'finbert_base': f_scores, 'roberta_base': r_scores}).to_csv(
+                        checkpoint_file, index=False)
+                    tqdm.write(f"[Checkpoint] Safety save at {done:,} texts.")
+
+            missing['finbert'] = f_scores
+            missing['roberta'] = r_scores
+
+            # Fold the new scores into the cache so the next run is cheaper still.
+            cache = pd.concat([cache, missing[['text_hash', 'finbert', 'roberta']]],
+                              ignore_index=True).drop_duplicates('text_hash')
+            os.makedirs(os.path.dirname(self.cache_path) or '.', exist_ok=True)
+            cache.to_parquet(self.cache_path, index=False)
+            print(f"Cache updated -> {len(cache):,} entries.")
+
+            todo = todo.set_index('text_hash')
+            todo.loc[missing['text_hash'], ['finbert', 'roberta']] = missing[
+                ['finbert', 'roberta']].values
+            todo = todo.reset_index()
+            if os.path.exists(checkpoint_file):
+                os.remove(checkpoint_file)
+
+        scores = todo.set_index('text_hash')
+        df['finbert_base'] = scores['finbert'].reindex(df['text_hash']).values
+        df['roberta_base'] = scores['roberta'].reindex(df['text_hash']).values
+        unresolved = df['finbert_base'].isna().sum()
+        if unresolved:
+            print(f"      WARNING: {unresolved:,} tweets ended up without a score; dropping them.")
+            df = df[df['finbert_base'].notna()]
+
+
         # --- NOWA LOGIKA: ROZDZIELENIE KOHORT ---
         print("Aggregating daily sentiment (Splitting Whales and Retail)...")
 
@@ -189,9 +247,9 @@ class NLPProcessor:
 
 if __name__ == "__main__":
     processor_whale = NLPProcessor(
-        tweets_csv='data/new_dataset/interim/weighted_tweets_2025_26.csv',
-        market_csv='data/new_dataset/market/market_features_2025_26.csv',
-        output_pkl='data/new_dataset/processed/full_dataset_whales_2025_26.pkl',
+        tweets_csv='data/new_dataset/interim/weighted_tweets_2021_23.csv',
+        market_csv='data/new_dataset/market/market_features_2021_23.csv',
+        output_pkl='data/new_dataset/processed/full_dataset_whales_2021_23.pkl',
         sample_size=None,
         batch_size=64
     )

@@ -10,9 +10,9 @@ from tensorflow.keras.layers import Input, GRU, Dense, Dropout, Concatenate
 from tensorflow.keras.callbacks import EarlyStopping
 from utils import calculate_directional_accuracy
 
-# 'sentiment_missing' flags days with zero tweets at all (real gaps in the raw
-# 2025-26 collection - only ~201/362 days have any tweets). It travels with the
-# market branch since it's a single extra scalar, not worth its own GRU branch.
+# 'sentiment_missing' flags days on which the corpus has no tweets at all, so the
+# model can tell a genuinely neutral day from a forward-filled gap. It travels
+# with the market branch - a single extra scalar isn't worth its own GRU branch.
 MARKET_FEATURES = ['daily_return', 'momentum_3d', 'volatility_7d', 'sentiment_missing']
 SENTIMENT_STREAMS = ['finbert_whale', 'finbert_retail', 'roberta_whale', 'roberta_retail']
 LOOK_BACK = 14
@@ -65,7 +65,7 @@ def build_model(look_back):
     return model
 
 
-def run(ticker, results_dir, dataset_pkl='data/new_dataset/processed/full_dataset_whales_2025_26.pkl'):
+def run(ticker, results_dir, dataset_pkl='data/new_dataset/processed/full_dataset_whales_2021_23.pkl'):
     # ==========================================
     # EXPERIMENT TRACKING: Change this name before every new idea!
     experiment_name = "V1_Classification_WalkForward"

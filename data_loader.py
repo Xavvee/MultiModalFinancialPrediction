@@ -6,7 +6,7 @@ from huggingface_hub import hf_hub_download
 import csv
 
 class DataLoader:
-    def __init__(self, tweets_file_path, output_file='data/new_dataset/interim/clean_tweets_2025_26.csv'):
+    def __init__(self, tweets_file_path, output_file='data/new_dataset/interim/clean_tweets_2021_23.csv'):
         """
         Initializes the DataLoader for pure ETL (Extract, Transform, Load) tasks.
         Adapted for the 2025-2026 Kaggle dataset focusing on User Authority.
@@ -96,8 +96,8 @@ class DataLoader:
 
 if __name__ == "__main__":
     # UPDATED FILENAME FOR THE NEW DATASET
-    input_file = 'data/new_dataset/raw/bitcoin_tweets_2025_26.csv'
-    output_file = 'data/new_dataset/interim/clean_tweets_2025_26.csv'
+    input_file = 'data/new_dataset/raw/bitcoin_tweets_2021_23.csv'
+    output_file = 'data/new_dataset/interim/clean_tweets_2021_23.csv'
 
     loader = DataLoader(input_file, output_file)
     loader.process_and_save()
