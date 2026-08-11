@@ -2,7 +2,8 @@ import os
 import time
 import shutil
 import sentiment_ab_test
-from models import random_walk, arima, arima_stationary, lstm, lstm_stationary, gru_multimodal, dashboard
+from models import (random_walk, majority_baseline, arima, arima_stationary,
+                    lstm, lstm_stationary, gru_multimodal, dashboard)
 
 RESULTS_DIR = "results"
 ASSETS = ["BTC-USD", "ETH-USD", "^GSPC"]
@@ -44,7 +45,10 @@ def main():
 
             # 1. Random Walk
             random_walk.run(ticker, asset_dir)
-            
+
+            # 1b. Majority baseline - the directional bar every model must clear
+            majority_baseline.run(ticker, asset_dir)
+
             # 2. ARIMA
             arima.run(ticker, asset_dir)
 
