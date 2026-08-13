@@ -154,7 +154,7 @@
 
 <div class="tiles">
   <div class="tile"><p class="k">Akcje: sentyment → luka</p><p class="v ok">t = +6,2</p><p class="s">0 z 500 permutacji</p></div>
-  <div class="tile"><p class="k">Akcje: ruch śródsesyjny</p><p class="v">t = +0,5</p><p class="s">wyceniono na otwarciu</p></div>
+  <div class="tile"><p class="k">Rozpiętość kwantylowa</p><p class="v ok">+30 bp</p><p class="s">monotonicznie, 5 grup</p></div>
   <div class="tile"><p class="k">BTC: reakcja / predykcja</p><p class="v">0,41 / 0,02</p><p class="s">CI się nie stykają</p></div>
   <div class="tile"><p class="k">Kontrola: wzmianka vs wydźwięk</p><p class="v">+2,4 p.p.</p><p class="s">sentyment: r ≈ 0,09 (n.i.)</p></div>
 </div>
@@ -295,6 +295,76 @@
       (tasowanie historii każdej spółki) obserwowany współczynnik leży
       <strong>7,7 odchylenia standardowego</strong> od rozkładu zerowego i
       <strong>żadne z 500 losowań go nie osiągnęło</strong>.
+    </p>
+  </div>
+
+  <h3>Walidacja na spółkach, których model nie widział</h3>
+  <div class="prose">
+    <p>
+      Podział próby na połówki czasowe to słaba forma walidacji — po obu stronach
+      występują te same firmy. Poważniejsze pytanie brzmi, czy zależność przenosi
+      się na <strong>podmioty nieobecne w treningu</strong>. Współczynniki szacowane
+      są na części spółek i stosowane do przewidywania luk dla pozostałych.
+    </p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Projekt walidacyjny</th><th class="num">same kontrole</th>
+      <th class="num">+ sentyment</th><th class="num">zysk</th></tr></thead>
+    <tbody>
+      <tr><td>nieznane spółki <span class="dim">(5 foldów)</span></td>
+        <td class="num">r = +0,115</td><td class="num">r = +0,149</td><td class="num">+0,034</td></tr>
+      <tr><td>późniejszy okres</td>
+        <td class="num">r = +0,161</td><td class="num">r = +0,182</td><td class="num">+0,021</td></tr>
+      <tr class="hi"><td>nieznane spółki <em>i</em> późniejszy okres</td>
+        <td class="num">r = +0,047 <span class="dim">(p = 0,34)</span></td>
+        <td class="num ok">r = +0,161 <span class="dim">(p = 0,0009)</span></td><td class="num">+0,115</td></tr>
+    </tbody></table></div>
+  <div class="prose">
+    <p>
+      Najostrzejszy wariant jest najbardziej wymowny: na firmach nieznanych modelowi,
+      w okresie nieobjętym treningiem, <strong>sama historia cen nie przewiduje
+      niczego</strong>, a dodanie sentymentu daje istotny sygnał. Zależność nie jest
+      więc dopasowaniem do konkretnych spółek.
+    </p>
+  </div>
+
+  <h3>Ujęcie kwantylowe</h3>
+  <div class="prose">
+    <p>
+      Trafność kierunkowa jest tu niewłaściwą miarą: przy 54,7% luk dodatnich
+      trywialna stała predykcja osiąga 54,7% za darmo, a sygnał naszej siły
+      (r ≈ 0,16) może podnieść ten wynik najwyżej o 0,45 punktu — mniej niż błąd
+      pomiaru. Standardem dla słabych sygnałów jest sortowanie przekroju i
+      porównanie skrajnych grup, w punktach bazowych.
+    </p>
+  </div>
+  <figure>
+    <p class="fig-title">Luka otwarcia według rangi sentymentu nocnego</p>
+    <p class="fig-sub">4 615 spółko-sesji, grupy tworzone w obrębie każdej sesji</p>
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--series-3)"></span>luka otwarcia</span>
+      <span><span class="swatch" style="background:var(--ink-3)"></span>ruch śródsesyjny (placebo)</span>
+    </div>
+    <div class="chart-scroll"><svg id="c-quint" viewBox="0 0 720 300" role="img"
+      aria-label="Luka otwarcia rośnie monotonicznie od -3,6 do +26,8 punktów bazowych; ruch śródsesyjny pozostaje płaski."></svg></div>
+    <figcaption>
+      Uporządkowanie jest <strong>idealnie monotoniczne</strong> — przy podziale na
+      trzy i na pięć grup. To samo w sobie stanowi test: przypadkowa korelacja nie
+      ma powodu ustawić pięciu koszyków w rosnący porządek. Rozpiętość między
+      skrajnymi grupami wynosi <strong>+30 bp na sesję</strong> (t = +5,23).
+      Ta sama procedura zastosowana do ruchu śródsesyjnego daje wykres płaski
+      i rozpiętość −1 bp (p = 0,85).
+    </figcaption>
+  </figure>
+  <div class="prose">
+    <p class="dim" style="font-size:14px">
+      Dwa zastrzeżenia. Rozpiętość jest miarą <em>siły sygnału w jednostkach
+      ekonomicznych</em>, nie strategią: żeby uchwycić lukę, trzeba by trzymać papier
+      od poprzedniego zamknięcia, kiedy sentyment nocny jeszcze nie istnieje.
+      Stosunek średniej do zmienności rzędu 4,0 nie jest zatem wskaźnikiem Sharpe’a
+      strategii. Ponadto mierzymy lukę do <em>oficjalnego</em> otwarcia, a amerykańskie
+      akcje mają handel przedsesyjny i kontrakty terminowe — część informacji jest
+      prawdopodobnie wyceniana wcześniej, w obrocie niewidocznym w dziennych danych OHLC.
     </p>
   </div>
   <div class="prose">
@@ -656,7 +726,44 @@
     el('line',{x1:mL,x2:mL+pw,y1:mT+ph,y2:mT+ph,stroke:css('--rule-strong'),'stroke-width':1},svg);
   }
 
-  function all(){volume();intraday();gap();doge();}
+  function quint(){
+    const svg=document.getElementById('c-quint'); if(!svg) return; svg.innerHTML='';
+    const gapv=[-3.59,4.27,5.86,21.78,26.78];
+    const intr=[-1.95,-3.98,-0.75,2.27,-1.82];
+    const W=720,H=300,mL=58,mR=24,mT=24,mB=56,pw=W-mL-mR,ph=H-mT-mB;
+    const lo=-8,hi=30;
+    const Y=v=>mT+ph-(v-lo)/(hi-lo)*ph;
+    const colW=pw/5;
+    [-5,0,5,10,15,20,25,30].forEach(v=>{
+      el('line',{x1:mL,x2:mL+pw,y1:Y(v),y2:Y(v),stroke:css('--rule'),'stroke-width':1},svg);
+      const t=el('text',{x:mL-9,y:Y(v)+4,'text-anchor':'end',fill:css('--ink-3'),'font-size':11},svg);
+      t.setAttribute('font-family',mono); t.textContent=v;});
+    el('line',{x1:mL,x2:mL+pw,y1:Y(0),y2:Y(0),stroke:css('--ink-2'),'stroke-width':1.5},svg);
+    for(let i=0;i<5;i++){
+      const cx=mL+colW*i+colW/2, bw=22, gp=5;
+      [[gapv[i],css('--series-3'),'luka otwarcia',-(bw+gp)/2],
+       [intr[i],css('--ink-3'),'ruch śródsesyjny',(bw+gp)/2]].forEach(s=>{
+        const x=cx+s[3]-bw/2;
+        const top=Math.min(Y(s[0]),Y(0)), h=Math.abs(Y(s[0])-Y(0));
+        const bar=el('rect',{x:x,y:top,width:bw,height:Math.max(h,1.5),rx:3,
+          fill:s[1],opacity:s[1]===css('--ink-3')?.55:1},svg);
+        bar.addEventListener('mousemove',e=>show(e,`grupa ${i+1}/5\n${s[2]}: ${s[0].toFixed(2).replace('.',',')} bp`));
+        bar.addEventListener('mouseleave',hide);});
+      const t=el('text',{x:cx,y:H-mB+21,'text-anchor':'middle',fill:css('--ink-2'),'font-size':12},svg);
+      t.textContent=(i+1)+'/5';
+      if(i===0||i===4){
+        const lab=el('text',{x:cx,y:H-mB+37,'text-anchor':'middle',fill:css('--ink-3'),'font-size':10.5},svg);
+        lab.textContent=i===0?'najniższy':'najwyższy';}
+    }
+    const yl=el('text',{x:15,y:mT+ph/2,fill:css('--ink-2'),'font-size':12,'text-anchor':'middle',
+      transform:`rotate(-90 15 ${mT+ph/2})`},svg);
+    yl.textContent='średni ruch (punkty bazowe)';
+    const xl=el('text',{x:mL+pw/2,y:H-6,'text-anchor':'middle',fill:css('--ink-2'),'font-size':12},svg);
+    xl.textContent='grupa według sentymentu w oknie zamknięcia';
+    el('line',{x1:mL,x2:mL,y1:mT,y2:mT+ph,stroke:css('--rule-strong'),'stroke-width':1},svg);
+  }
+
+  function all(){volume();intraday();gap();doge();quint();}
   all();
   window.addEventListener('resize',all);
   const mq=window.matchMedia('(prefers-color-scheme: dark)');
