@@ -165,6 +165,7 @@
   <div class="tile"><p class="k">Rozpiętość kwantylowa</p><p class="v ok">+30 bp</p><p class="s">monotonicznie, 5 grup</p></div>
   <div class="tile"><p class="k">Zgodność platform</p><p class="v">0,76</p><p class="s">Twitter kontra Reddit</p></div>
   <div class="tile"><p class="k">Kontrola: wzmianka vs wydźwięk</p><p class="v">+2,4 p.p.</p><p class="s">sentyment: r ≈ 0,09 (n.i.)</p></div>
+  <div class="tile"><p class="k">GRU: cena kontra +sentyment</p><p class="v">51,2% vs 50,2%</p><p class="s">20 ziaren, sparowany test</p></div>
 </div>
 
 <!-- 01 -->
@@ -685,6 +686,73 @@
 <!-- 09 -->
 <section>
   <div class="sec-head"><span class="sec-num">09</span>
+    <h2 class="sec-title">Sieć GRU: ablacja i stabilność wyniku</h2></div>
+  <div class="prose">
+    <p>
+      Reszta badania testuje hipotezę ekonometrycznie; ta sekcja testuje ją wprost
+      na architekturze użytej w pracy — GRU Dual-Stream (FinBERT + RoBERTa jako
+      osobne strumienie wejściowe). Dwa oddzielne eksperymenty: <strong>ablacja
+      trójstronna</strong> (czy dodanie sentymentu do ceny cokolwiek zmienia,
+      zbiór 2016–19) i <strong>stabilność walidacji kroczącej</strong> (czy
+      pojedynczy przebieg pięciu okien jest wiarygodny, zbiór 2021–23).
+    </p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Wariant wejścia</th><th class="num">DA (śr. ± odch. std)</th>
+      <th class="num">vs baseline większościowy</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>sama cena</td><td class="num">51,19% ± 2,85</td><td class="num">t = +4,66, p = 0,0002</td></tr>
+      <tr><td>+ FinBERT</td><td class="num">49,85% ± 3,14</td><td class="num">t = +2,31, p = 0,032</td></tr>
+      <tr><td>+ RoBERTa</td><td class="num">49,42% ± 2,39</td><td class="num">t = +2,23, p = 0,038</td></tr>
+      <tr><td>+ oba strumienie</td><td class="num">50,15% ± 3,42</td><td class="num">t = +2,52, p = 0,021</td></tr>
+    </tbody></table></div>
+  <div class="prose">
+    <p>
+      20 ziaren losowych, ten sam podział train/test dla każdego wariantu w danym
+      ziarnie (test sparowany), baseline większościowy liczony na dokładnie tym
+      oknie testowym co sieć — <strong>48,22%</strong>. Wszystkie cztery warianty
+      biją baseline; hipoteza „Lazy Predictor” (sieć zapada się do zgadywania
+      częstszego kierunku, gdy cena bliska błądzeniu losowemu) jest więc
+      <strong>odrzucona</strong> — sieć konsekwentnie robi coś ponad to. Ale żaden
+      wariant z sentymentem nie bije samej ceny; jedyna różnica parami zbliżona
+      do istotności (cena kontra +RoBERTa, p = 0,034) nie przechodzi korekty
+      Bonferroniego dla sześciu porównań (próg 0,0083). Sentyment nie dokłada
+      wartości predykcyjnej ponad cenę — ten sam wniosek co w resztach badania,
+      tym razem zmierzony na samej sieci, a nie tylko na regresji.
+    </p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Okno testowe</th><th class="num">zmienność zwrotów</th>
+      <th class="num">DA (śr. ± odch. std, 10 powtórzeń)</th></tr></thead>
+    <tbody>
+      <tr><td>2021-06 – 2021-10</td><td class="num">0,0378</td><td class="num">45,4% ± 4,0</td></tr>
+      <tr><td>2021-10 – 2022-01</td><td class="num">0,0303</td><td class="num">48,8% ± 3,7</td></tr>
+      <tr><td>2022-01 – 2022-05</td><td class="num">0,0364</td><td class="num">49,0% ± 1,6</td></tr>
+      <tr><td>2022-05 – 2022-09</td><td class="num">0,0365</td><td class="num">49,5% ± 6,1</td></tr>
+      <tr class="hi"><td>2022-09 – 2023-01</td><td class="num">0,0255</td><td class="num">54,4% ± 1,4</td></tr>
+    </tbody></table></div>
+  <div class="prose">
+    <p>
+      Walidacja krocząca (<code>TimeSeriesSplit</code>, 5 okien) dzieli dane
+      deterministycznie — te same okna w każdym powtórzeniu, zmienia się tylko
+      losowa inicjalizacja wag. Pojedynczy przebieg potrafi trafić w skrajny
+      koniec tego rozrzutu: okno 4 ma odchylenie między powtórzeniami aż 6,1 p.p.,
+      więc jeden zaobserwowany wynik 59,6% na tym oknie jest w większości szumem
+      inicjalizacji, nie własnością danych. Mimo to <strong>wynik zagregowany
+      po wszystkich pięciu oknach jest stabilny</strong>: 49,4% ± 1,9 p.p. między
+      powtórzeniami — błędy okien częściowo się znoszą. Korelacja między
+      zmiennością okna a jego średnim DA wynosi <strong>r = −0,83</strong>
+      (5 okien, ostrożnie z uogólnianiem): okna spokojniejsze dają wyższą
+      trafność kierunkową, burzliwe — niższą. To zbiór 2021–23, niezwiązany
+      z odcięciem stagnacji 2014–2016 stosowanym na zbiorze 2016–19 gdzie
+      indziej w tym badaniu — dwa różne zbiory, dwa różne okresy.
+    </p>
+  </div>
+</section>
+
+<!-- 10 -->
+<section>
+  <div class="sec-head"><span class="sec-num">10</span>
     <h2 class="sec-title">Ograniczenia i dalsze kroki</h2></div>
   <div class="prose">
     <ul class="notes">
@@ -718,7 +786,9 @@
   <p>
     Inferencja przy szeregach czasowych: błędy Newey-West (24 opóźnienia) lub
     klastrowane po dacie, uzupełnione bootstrapem blokowym i testami permutacyjnymi
-    z nullem niszczącym wyrównanie czasowe. Wyniki sieci uśredniane z 3 ziaren losowych.
+    z nullem niszczącym wyrównanie czasowe. Wyniki sieci GRU uśredniane z 20 ziaren
+    losowych (ablacja, sekcja 09) lub 10 powtórzeń walidacji kroczącej (stabilność,
+    sekcja 09).
   </p>
 </footer>
 
