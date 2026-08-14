@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
-def plot_sentiment_ab_test(weighted_pkl='full_dataset_weighted.pkl', unweighted_pkl='dataset_unweighted.pkl', output_file='results/sentiment_ab_test.png'):
+def plot_sentiment_ab_test(weighted_pkl='data/old_dataset/processed/full_dataset_weighted.pkl', unweighted_pkl='data/old_dataset/archive/dataset_unweighted.pkl', output_file='results/sentiment_ab_test.png'):
     print("--- GENERATING SENTIMENT PLOT ---")
     
     df_w = pd.read_pickle(weighted_pkl)

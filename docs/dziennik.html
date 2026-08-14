@@ -1,0 +1,959 @@
+<title>Dziennik badawczy — sentyment społecznościowy a rynki</title>
+<style>
+  :root {
+    color-scheme: light;
+    --ground:#eeeeea; --surface:#fcfcfb; --surface-sunk:#f4f4f1;
+    --rule:#dcdcd6; --rule-strong:#bfbfb6;
+    --ink:#0b0b0b; --ink-2:#52514e; --ink-3:#77766f;
+    --series-1:#2a78d6; --series-2:#eb6834; --series-3:#1baf7a; --accent:#2a78d6;
+    --good:#1a6b4c; --good-bg:#e2f0e9;
+    --warn:#8a6a1f; --warn-bg:#f7efdb;
+    --shadow:0 1px 2px rgba(11,11,11,.05), 0 6px 18px rgba(11,11,11,.05);
+    --f-display:Georgia,"Iowan Old Style",Charter,"Times New Roman",serif;
+    --f-body:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --f-data:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --ground:#111110; --surface:#1a1a19; --surface-sunk:#201f1e;
+      --rule:#33322f; --rule-strong:#4b4a45;
+      --ink:#ffffff; --ink-2:#c3c2b7; --ink-3:#93928a;
+      --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70; --accent:#3987e5;
+      --good:#6fc79f; --good-bg:#16281f;
+      --warn:#e0b856; --warn-bg:#2e2716;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground:#111110; --surface:#1a1a19; --surface-sunk:#201f1e;
+    --rule:#33322f; --rule-strong:#4b4a45;
+    --ink:#ffffff; --ink-2:#c3c2b7; --ink-3:#93928a;
+    --series-1:#3987e5; --series-2:#d95926; --series-3:#199e70; --accent:#3987e5;
+    --good:#6fc79f; --good-bg:#16281f;
+    --warn:#e0b856; --warn-bg:#2e2716;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.3);
+  }
+  body{background:var(--ground);color:var(--ink);font-family:var(--f-body);
+    font-size:16px;line-height:1.65;margin:0;padding:0 20px 96px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:900px;margin:0 auto}
+  .prose{max-width:68ch}
+  header.masthead{padding:56px 0 32px;border-bottom:2px solid var(--ink)}
+  .eyebrow{font-family:var(--f-data);font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-3);margin:0 0 18px}
+  h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,5vw,46px);
+    line-height:1.12;letter-spacing:-.015em;text-wrap:balance;margin:0 0 16px}
+  .standfirst{font-size:18px;line-height:1.6;color:var(--ink-2);max-width:62ch;margin:0}
+  .verdict{background:var(--surface);border:1px solid var(--rule);
+    border-left:3px solid var(--accent);border-radius:3px;padding:22px 26px;
+    margin:32px 0 8px;box-shadow:var(--shadow)}
+  .verdict h2{font-family:var(--f-data);font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-3);margin:0 0 10px;font-weight:600}
+  .verdict p{margin:0 0 10px;font-size:17px;line-height:1.6}
+  .verdict p:last-child{margin-bottom:0}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:3px;
+    margin:28px 0 8px;overflow:hidden}
+  .tile{background:var(--surface);padding:18px 20px}
+  .tile .k{font-family:var(--f-data);font-size:10.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-3);margin:0 0 8px}
+  .tile .v{font-family:var(--f-data);font-size:25px;font-variant-numeric:tabular-nums;
+    letter-spacing:-.02em;color:var(--ink);line-height:1}
+  .tile .s{font-size:12.5px;color:var(--ink-3);margin-top:7px}
+  section{margin-top:56px}
+  .sec-head{display:flex;align-items:baseline;gap:14px;
+    border-bottom:1px solid var(--rule-strong);padding-bottom:10px;margin-bottom:24px}
+  .sec-num{font-family:var(--f-data);font-size:12px;color:var(--accent);
+    font-weight:700;letter-spacing:.05em}
+  h2.sec-title{font-family:var(--f-display);font-size:clamp(21px,3vw,27px);
+    font-weight:700;letter-spacing:-.01em;margin:0;text-wrap:balance}
+  h3{font-family:var(--f-display);font-size:18px;font-weight:700;margin:34px 0 10px}
+  p{margin:0 0 15px}
+  .prose p{max-width:68ch}
+  strong{font-weight:650}
+  code{font-family:var(--f-data);font-size:.87em;background:var(--surface-sunk);
+    border:1px solid var(--rule);border-radius:3px;padding:1px 5px}
+  .keynote{background:var(--surface);border:1px solid var(--rule);
+    border-left:3px solid var(--series-2);border-radius:3px;padding:18px 22px;
+    margin:22px 0;max-width:74ch;box-shadow:var(--shadow)}
+  .keynote.pos{border-left-color:var(--series-3)}
+  .keynote p{margin:0;font-size:16.5px}
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--rule);border-radius:3px;
+    background:var(--surface);margin:20px 0;box-shadow:var(--shadow)}
+  table{border-collapse:collapse;width:100%;font-size:14px}
+  th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--rule);white-space:nowrap}
+  thead th{font-family:var(--f-data);font-size:10.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-3);font-weight:600;background:var(--surface-sunk)}
+  tbody tr:last-child td{border-bottom:0}
+  td.num,th.num{font-family:var(--f-data);font-variant-numeric:tabular-nums;text-align:right}
+  tr.hi td{background:var(--surface-sunk);font-weight:600}
+  .dim{color:var(--ink-3)}
+  .ok{color:var(--good);font-weight:650}
+  figure{margin:28px 0;background:var(--surface);border:1px solid var(--rule);
+    border-radius:3px;padding:22px 24px 18px;box-shadow:var(--shadow)}
+  figcaption{font-size:13px;color:var(--ink-2);line-height:1.55;margin-top:14px;
+    padding-top:12px;border-top:1px solid var(--rule);max-width:76ch}
+  .fig-title{font-family:var(--f-display);font-size:16px;font-weight:700;margin:0 0 3px}
+  .fig-sub{font-size:13px;color:var(--ink-3);margin:0 0 16px}
+  .chart-scroll{overflow-x:auto}
+  svg{display:block;max-width:100%;height:auto}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;margin:0 0 14px;font-size:13px;color:var(--ink-2)}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+  .swatch{width:12px;height:12px;border-radius:2px;flex:none}
+  ul.notes{padding-left:20px;margin:0 0 15px;max-width:68ch}
+  ul.notes li{margin-bottom:9px}
+  footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule-strong);
+    font-size:13px;color:var(--ink-3);max-width:72ch}
+  footer p{margin-bottom:9px}
+  .tooltip{position:fixed;pointer-events:none;background:var(--ink);color:var(--ground);
+    font-family:var(--f-data);font-size:11.5px;line-height:1.5;padding:7px 10px;
+    border-radius:3px;opacity:0;transition:opacity .1s;z-index:50;white-space:pre}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">Dziennik badawczy · praca magisterska · aktualizacja 12.08.2026</p>
+  <h1>Sentyment społecznościowy a rynki: kiedy wyprzedza, a kiedy tylko reaguje</h1>
+  <p class="standfirst">
+    Pięć zbiorów, dwie platformy, trzy aktywa. Na Bitcoinie sentyment wyłącznie
+    reaguje na cenę — tak samo na Twitterze jak na Reddicie. Na akcjach przewiduje
+    lukę otwarcia. A tam, gdzie wpływ jest bezsporny, porusza nim nie wydźwięk
+    wpisu, lecz sam fakt wzmianki.
+  </p>
+</header>
+
+<div class="verdict">
+  <h2>Wnioski główne</h2>
+  <p>
+    <strong>Bitcoin: sam kanał reakcji.</strong> Analiza wewnątrzdzienna rozdziela to,
+    czego dzienna agregacja rozdzielić nie potrafi. Wcześniejszy ruch ceny tłumaczy
+    późniejszy sentyment (r = 0,34–0,45 przy każdym cięciu doby); zależność odwrotna
+    wynosi 0,02–0,05 i wszędzie obejmuje zero.
+  </p>
+  <p>
+    <strong>Akcje: sentyment wyprzedza otwarcie.</strong> Nastroje z okna, gdy giełda
+    jest zamknięta, przewidują <strong>lukę otwarcia</strong> (t = +6,2) — i znikają
+    w ruchu śródsesyjnym (t = +0,5). Informacja zostaje wyceniona jednym skokiem
+    na otwarciu, dokładnie tam, gdzie rynek pierwszy raz może zareagować.
+  </p>
+  <p>
+    <strong>Mechanizm tłumaczy różnicę.</strong> Kryptowaluta handluje się bez przerwy,
+    więc nie istnieje okno, w którym informacja gromadzi się bez możliwości odegrania.
+    Akcje takie okno mają — i tylko tam sentyment cokolwiek wyprzedza.
+  </p>
+  <p>
+    <strong>Kontrola pozytywna wskazuje granicę metody.</strong> Tam, gdzie wpływ
+    mediów społecznościowych jest udokumentowany (wpisy Muska o Dogecoinie),
+    aparat wykrywa efekt bez trudu — ale <em>nie przez sentyment</em>. Cenę poruszał
+    sam fakt wzmianki, nie jej wydźwięk. Mierzona wielkość to polaryzacja;
+    zjawisko okazało się szokiem uwagi.
+  </p>
+  <p>
+    <strong>To nie wina platformy.</strong> Reddit, zbadany na tym samym aktywie
+    i w tym samym roku, daje identyczną odpowiedź, a obie platformy korelują ze
+    sobą na poziomie <strong>0,76</strong> — mierzą to samo zjawisko. Na Reddicie
+    kanał reakcji jest wręcz wyraźniejszy: sentyment wiąże się z ceną <em>dnia
+    poprzedniego</em> silniej niż z bieżącym.
+  </p>
+</div>
+
+<div class="tiles">
+  <div class="tile"><p class="k">Akcje: sentyment → luka</p><p class="v ok">t = +6,2</p><p class="s">0 z 500 permutacji</p></div>
+  <div class="tile"><p class="k">Rozpiętość kwantylowa</p><p class="v ok">+30 bp</p><p class="s">monotonicznie, 5 grup</p></div>
+  <div class="tile"><p class="k">Zgodność platform</p><p class="v">0,76</p><p class="s">Twitter kontra Reddit</p></div>
+  <div class="tile"><p class="k">Kontrola: wzmianka vs wydźwięk</p><p class="v">+2,4 p.p.</p><p class="s">sentyment: r ≈ 0,09 (n.i.)</p></div>
+</div>
+
+<!-- 01 -->
+<section>
+  <div class="sec-head"><span class="sec-num">01</span>
+    <h2 class="sec-title">Weryfikacja danych: wykrycie sfabrykowanego zbioru</h2></div>
+  <div class="prose">
+    <p>
+      Zbiór opisany na Kaggle jako „Bitcoin Tweets 2025–2026” okazał się kopią
+      starszego zbioru z lat 2021–2023, w której zmieniono wyłącznie daty. Wykryto to,
+      gdy sentyment nie korelował z ceną nawet tego samego dnia — reakcja nastrojów
+      na ruch kursu jest zbyt pewnym efektem, by mogła zniknąć.
+    </p>
+    <p>
+      Rozstrzygnęły dwa niezależne dowody: wśród 4 660 872 kont
+      <strong>najnowsze założono 9 stycznia 2023</strong>, a porównanie z oryginałem
+      pokazuje wiersze identyczne co do bajta poza rokiem
+      (<code>2021-02-10</code> wobec <code>2026-02-10</code>).
+    </p>
+    <p>Z tego doświadczenia powstał protokół stosowany przed każdą kolejną analizą:</p>
+    <ul class="notes">
+      <li><strong>Bramka 1.</strong> Najnowsza data założenia konta musi sięgać końca deklarowanego zakresu.</li>
+      <li><strong>Bramka 2.</strong> Sentyment musi korelować z ceną <em>tego samego dnia</em>.</li>
+      <li><strong>Bramka 3.</strong> Gęstość dzienna musi wystarczać — poniżej ~100 wpisów na dzień pomiar jest szumem.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 02 -->
+<section>
+  <div class="sec-head"><span class="sec-num">02</span>
+    <h2 class="sec-title">Prawo skalowania: pomiar działa proporcjonalnie do próby</h2></div>
+  <div class="prose">
+    <p>
+      Siła korelacji sentymentu z ceną tego samego dnia rośnie monotonicznie z liczbą
+      wpisów, z których liczona jest średnia — sygnatura błędu próbkowania. Wzorzec
+      powtarza się na <strong>wszystkich trzech zbiorach</strong>, w tym na akcjach,
+      co czyni go własnością pomiaru, a nie konkretnego rynku.
+    </p>
+  </div>
+  <figure>
+    <p class="fig-title">Siła korelacji rośnie z liczbą wpisów</p>
+    <p class="fig-sub">Sentyment FinBERT wobec zwrotu tego samego dnia</p>
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--series-1)"></span>Bitcoin 2016–19</span>
+      <span><span class="swatch" style="background:var(--series-2)"></span>Bitcoin 2021–23</span>
+      <span><span class="swatch" style="background:var(--series-3)"></span>akcje (stocknet)</span>
+    </div>
+    <div class="chart-scroll"><svg id="c-vol" viewBox="0 0 720 300" role="img"
+      aria-label="Korelacja rośnie wraz z liczbą wpisów na wszystkich trzech zbiorach."></svg></div>
+    <figcaption>
+      Przy kilkudziesięciu wpisach dzienny sentyment to praktycznie szum. Przy
+      dziesiątkach tysięcy — silna, wysoce istotna korelacja. Zbiór akcji
+      (mediana 2 wpisy na spółko-dzień) leży w obszarze, w którym metody dziennej
+      agregacji z założenia nie mogą działać — stąd analiza per sesja z progiem gęstości.
+    </figcaption>
+  </figure>
+</section>
+
+<!-- 03 -->
+<section>
+  <div class="sec-head"><span class="sec-num">03</span>
+    <h2 class="sec-title">Bitcoin: w którą stronę biegnie zależność?</h2></div>
+  <div class="prose">
+    <p>
+      Dzienna agregacja <em>z definicji</em> nie odróżnia sentymentu wyprzedzającego
+      od reagującego — wpis z godziny 2:00 i ten z 23:00 trafiają do tego samego
+      kubełka, zestawianego ze zwrotem całej doby. Bitcoin handluje się bez przerwy,
+      więc dobę można przeciąć dowolnie: <strong>sentyment z godzin [0, H) wobec
+      zwrotu z godzin [H, 24)</strong>, bez nakładania okien.
+    </p>
+  </div>
+  <figure>
+    <p class="fig-title">Dwa kanały: reakcja kontra predykcja</p>
+    <p class="fig-sub">829 dni, 9,33 mln wpisów, ceny godzinowe (2017-08 – 2019-11)</p>
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--series-2)"></span>cena → późniejszy sentyment</span>
+      <span><span class="swatch" style="background:var(--series-1)"></span>sentyment → późniejsza cena</span>
+    </div>
+    <div class="chart-scroll"><svg id="c-intra" viewBox="0 0 720 330" role="img"
+      aria-label="Kanał reakcji od 0,34 do 0,45; kanał predykcji od -0,03 do 0,05."></svg></div>
+    <figcaption>
+      Wąsy to 95% przedziały ufności. Kanał reakcji jest silny i stabilny przy każdym
+      cięciu doby; kanał predykcji oscyluje wokół zera. Przedziały obu kanałów nigdzie
+      się nie stykają.
+    </figcaption>
+  </figure>
+  <div class="prose">
+    <p>
+      Moc jest określona: przy 942 dniach wykrylibyśmy efekt r ≥ 0,091, a zmierzyliśmy
+      0,012 (CI [−0,052; +0,076]). Gdyby sentyment przewidywał jutro tak silnie, jak
+      reaguje na dziś (r ≈ 0,25), znaleźlibyśmy to z prawdopodobieństwem bliskim 100%.
+    </p>
+  </div>
+</section>
+
+<!-- 04 -->
+<section>
+  <div class="sec-head"><span class="sec-num">04</span>
+    <h2 class="sec-title">Akcje: jedyne okno, w którym sentyment wyprzedza</h2></div>
+  <div class="prose">
+    <p>
+      Akcje wybrano z powodu mechanicznego, nie dla urozmaicenia. NYSE jest zamknięta
+      od 21:00 do 13:30 UTC. Nastroje narastające w tym oknie <strong>fizycznie nie
+      mogą zostać odegrane w cenie</strong> aż do otwarcia — to strukturalna okazja,
+      której aktywo handlowane bez przerwy nie oferuje.
+    </p>
+  </div>
+  <figure>
+    <p class="fig-title">Gdzie ląduje informacja z okna zamknięcia</p>
+    <p class="fig-sub">5 026 spółko-sesji, efekty stałe spółek, błędy klastrowane po dacie</p>
+    <div class="chart-scroll"><svg id="c-gap" viewBox="0 0 720 230" role="img"
+      aria-label="Luka otwarcia t=6.2, ruch śródsesyjny t=0.5, placebo t=2.3."></svg></div>
+    <figcaption>
+      Efekt jest obecny wyłącznie w luce otwarcia. W ruchu śródsesyjnym — czyli
+      w części dnia, w której rynek już handluje — znika całkowicie. To wzorzec
+      przewidywany przez teorię: informacja zostaje wyceniona w pierwszym możliwym
+      momencie i nie zostawia dryfu do wykorzystania.
+    </figcaption>
+  </figure>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Kontrola odporności</th><th class="num">współczynnik</th><th class="num">t</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>specyfikacja podstawowa</td><td class="num">+0,001475</td><td class="num">+6,20</td></tr>
+      <tr><td>po kontroli poprzedniej sesji, luki i ruchu śródsesyjnego</td><td class="num">+0,001490</td><td class="num">+6,30</td></tr>
+      <tr><td>drugi model sentymentu (RoBERTa)</td><td class="num">+0,001191</td><td class="num">+5,34</td></tr>
+      <tr><td>winsoryzacja zwrotów 1%/99%</td><td class="num">+0,001126</td><td class="num">+5,92</td></tr>
+      <tr><td>pierwsza połowa próby</td><td class="num">+0,001352</td><td class="num">+4,47</td></tr>
+      <tr><td>druga połowa próby</td><td class="num">+0,001624</td><td class="num">+4,28</td></tr>
+      <tr><td>bez pięciu najczęściej komentowanych spółek</td><td class="num">+0,001568</td><td class="num">+4,91</td></tr>
+      <tr><td><span class="dim">próg ≥20 wpisów w oknie</span></td><td class="num">+0,008440</td><td class="num">+3,37</td></tr>
+    </tbody></table></div>
+  <div class="keynote pos">
+    <p>
+      Test permutacyjny rozstrzyga: przy 500 losowaniach niszczących wyrównanie czasowe
+      (tasowanie historii każdej spółki) obserwowany współczynnik leży
+      <strong>7,7 odchylenia standardowego</strong> od rozkładu zerowego i
+      <strong>żadne z 500 losowań go nie osiągnęło</strong>.
+    </p>
+  </div>
+
+  <h3>Walidacja na spółkach, których model nie widział</h3>
+  <div class="prose">
+    <p>
+      Podział próby na połówki czasowe to słaba forma walidacji — po obu stronach
+      występują te same firmy. Poważniejsze pytanie brzmi, czy zależność przenosi
+      się na <strong>podmioty nieobecne w treningu</strong>. Współczynniki szacowane
+      są na części spółek i stosowane do przewidywania luk dla pozostałych.
+    </p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Projekt walidacyjny</th><th class="num">same kontrole</th>
+      <th class="num">+ sentyment</th><th class="num">zysk</th></tr></thead>
+    <tbody>
+      <tr><td>nieznane spółki <span class="dim">(5 foldów)</span></td>
+        <td class="num">r = +0,115</td><td class="num">r = +0,149</td><td class="num">+0,034</td></tr>
+      <tr><td>późniejszy okres</td>
+        <td class="num">r = +0,161</td><td class="num">r = +0,182</td><td class="num">+0,021</td></tr>
+      <tr class="hi"><td>nieznane spółki <em>i</em> późniejszy okres</td>
+        <td class="num">r = +0,047 <span class="dim">(p = 0,34)</span></td>
+        <td class="num ok">r = +0,161 <span class="dim">(p = 0,0009)</span></td><td class="num">+0,115</td></tr>
+    </tbody></table></div>
+  <div class="prose">
+    <p>
+      Najostrzejszy wariant jest najbardziej wymowny: na firmach nieznanych modelowi,
+      w okresie nieobjętym treningiem, <strong>sama historia cen nie przewiduje
+      niczego</strong>, a dodanie sentymentu daje istotny sygnał. Zależność nie jest
+      więc dopasowaniem do konkretnych spółek.
+    </p>
+  </div>
+
+  <h3>Dwa zarzuty, które trzeba było odeprzeć</h3>
+  <div class="prose">
+    <p>
+      <strong>Wyniki kwartalne.</strong> Raporty publikowane są po zamknięciu sesji
+      i wywołują największe luki w roku. Gdyby komentarz narastał wokół nich, cały
+      efekt mógłby być jedynie zastępnikiem sezonu raportowania.
+      <strong>Handel przedsesyjny.</strong> Amerykańskie akcje handlują się przed
+      oficjalnym otwarciem — gdyby efekt pochodził wyłącznie z wpisów tuż przed
+      dzwonkiem, mógłby odzwierciedlać ruchy niewidoczne w danych dziennych.
+    </p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Test</th><th class="num">współczynnik</th><th class="num">t</th><th>wynik</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>pełna próba</td><td class="num">+0,001475</td><td class="num">+6,20</td><td class="ok">—</td></tr>
+      <tr><td>poza sezonem wyników</td><td class="num">+0,000531</td><td class="num">+2,26</td><td>utrzymany, słabszy</td></tr>
+      <tr><td>bez 10% największych luk</td><td class="num">+0,000243</td><td class="num">+2,34</td><td>utrzymany, słabszy</td></tr>
+      <tr class="hi"><td>okno wczesne <span class="dim">(tuż po zamknięciu)</span></td><td class="num">+0,001031</td><td class="num">+3,64</td><td class="ok">utrzymany</td></tr>
+      <tr><td>okno późne <span class="dim">(przed otwarciem)</span></td><td class="num">+0,003546</td><td class="num">+5,52</td><td>utrzymany</td></tr>
+    </tbody></table></div>
+  <div class="prose">
+    <p>
+      Efekt przeżywa oba wykluczenia, ale wymaga doprecyzowania: <strong>jest silnie
+      skoncentrowany wokół publikacji wyników</strong> — poza sezonem współczynnik
+      spada do 36% wartości pełnej próby. To sensowne, bo wtedy jest jakakolwiek
+      informacja do przekazania.
+    </p>
+    <p>
+      Rozstrzygające jest okno wczesne. Tuż po zamknięciu obrót przedsesyjny jeszcze
+      nie ruszył, więc sentyment pisany wtedy <em>nie ma na co reagować</em> — a mimo
+      to przewiduje lukę (t = +3,64). Okno późne jest silniejsze, co sugeruje, że
+      część całkowitego efektu rzeczywiście odzwierciedla obrót przedsesyjny, ale nie całość.
+    </p>
+  </div>
+
+  <h3>Ujęcie kwantylowe</h3>
+  <div class="prose">
+    <p>
+      Trafność kierunkowa jest tu niewłaściwą miarą: przy 54,7% luk dodatnich
+      trywialna stała predykcja osiąga 54,7% za darmo, a sygnał naszej siły
+      (r ≈ 0,16) może podnieść ten wynik najwyżej o 0,45 punktu — mniej niż błąd
+      pomiaru. Standardem dla słabych sygnałów jest sortowanie przekroju i
+      porównanie skrajnych grup, w punktach bazowych.
+    </p>
+  </div>
+  <figure>
+    <p class="fig-title">Luka otwarcia według rangi sentymentu nocnego</p>
+    <p class="fig-sub">4 615 spółko-sesji, grupy tworzone w obrębie każdej sesji</p>
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--series-3)"></span>luka otwarcia</span>
+      <span><span class="swatch" style="background:var(--ink-3)"></span>ruch śródsesyjny (placebo)</span>
+    </div>
+    <div class="chart-scroll"><svg id="c-quint" viewBox="0 0 720 300" role="img"
+      aria-label="Luka otwarcia rośnie monotonicznie od -3,6 do +26,8 punktów bazowych; ruch śródsesyjny pozostaje płaski."></svg></div>
+    <figcaption>
+      Uporządkowanie jest <strong>idealnie monotoniczne</strong> — przy podziale na
+      trzy i na pięć grup. To samo w sobie stanowi test: przypadkowa korelacja nie
+      ma powodu ustawić pięciu koszyków w rosnący porządek. Rozpiętość między
+      skrajnymi grupami wynosi <strong>+30 bp na sesję</strong> (t = +5,23).
+      Ta sama procedura zastosowana do ruchu śródsesyjnego daje wykres płaski
+      i rozpiętość −1 bp (p = 0,85).
+    </figcaption>
+  </figure>
+  <div class="prose">
+    <p class="dim" style="font-size:14px">
+      Dwa zastrzeżenia. Rozpiętość jest miarą <em>siły sygnału w jednostkach
+      ekonomicznych</em>, nie strategią: żeby uchwycić lukę, trzeba by trzymać papier
+      od poprzedniego zamknięcia, kiedy sentyment nocny jeszcze nie istnieje.
+      Stosunek średniej do zmienności rzędu 4,0 nie jest zatem wskaźnikiem Sharpe’a
+      strategii. Ponadto mierzymy lukę do <em>oficjalnego</em> otwarcia, a amerykańskie
+      akcje mają handel przedsesyjny i kontrakty terminowe — część informacji jest
+      prawdopodobnie wyceniana wcześniej, w obrocie niewidocznym w dziennych danych OHLC.
+    </p>
+  </div>
+  <div class="prose">
+    <p class="dim" style="font-size:14px">
+      Zastrzeżenia: efekt jest umiarkowany (jedno odchylenie sentymentu odpowiada
+      luce +0,15% przy typowej dziennej zmienności 1,5–2%), a sama luka jest trudno
+      handlowalna, bo pełny sentyment nocny znany jest dopiero tuż przed otwarciem.
+      To dowód, że informacja jest realna i natychmiast wyceniana — nie gotowa strategia.
+    </p>
+  </div>
+</section>
+
+<!-- 05 -->
+<section>
+  <div class="sec-head"><span class="sec-num">05</span>
+    <h2 class="sec-title">Dwa fałszywe alarmy i narzędzie, które je wykryło</h2></div>
+  <div class="prose">
+    <p>
+      Dwa wyniki w trakcie badania wyglądały na pozytywne i oba okazały się artefaktami.
+      Wykrył je ten sam zabieg: <strong>test placebo</strong>, czyli sprawdzenie, czy
+      predyktor „przewiduje” również to, co już się wydarzyło.
+    </p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Hipoteza</th><th class="num">w przód</th><th class="num">placebo (wstecz)</th><th>werdykt</th></tr></thead>
+    <tbody>
+      <tr><td>Rozproszenie opinii → zmienność <span class="dim">(BTC)</span></td><td class="num">t = +2,41</td><td class="num">t = +3,47</td><td>odrzucona</td></tr>
+      <tr><td>Wolumen postów → zmienność <span class="dim">(Reddit)</span></td><td class="num">t = +2,35</td><td class="num">t = +3,27</td><td>odrzucona</td></tr>
+      <tr><td>Upvote ratio → zmienność <span class="dim">(Reddit)</span></td><td class="num">t = +2,33</td><td class="num">t = +2,02</td><td>odrzucona</td></tr>
+      <tr class="hi"><td>Sentyment nocny → luka otwarcia <span class="dim">(akcje)</span></td><td class="num">t = +6,20</td><td class="num">t = +2,34</td><td class="ok">utrzymana</td></tr>
+    </tbody></table></div>
+  <div class="prose">
+    <p>
+      Różnica jest jakościowa. Przy rozproszeniu relacja była <em>silniejsza wstecz
+      niż w przód</em> — definicja zależności współbieżnej. Przy sentymencie nocnym
+      efekt w przód jest <strong>4,4 razy silniejszy</strong> od wstecznego, a współczynnik
+      nie drgnął po dołożeniu kontroli.
+    </p>
+  </div>
+  <div class="keynote">
+    <p>
+      Wniosek metodologiczny wart osobnego omówienia: wynik dla rozproszenia przeszedł
+      <strong>odporne błędy standardowe Newey-West oraz bootstrap blokowy</strong> —
+      obie kontrole go potwierdziły. Obalił go dopiero test kierunkowości. Przy szeregach
+      czasowych odporna inferencja nie wystarcza.
+    </p>
+  </div>
+</section>
+
+<!-- 06 -->
+<section>
+  <div class="sec-head"><span class="sec-num">06</span>
+    <h2 class="sec-title">Hipotezy sprawdzone i odrzucone</h2></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Hipoteza</th><th>Wynik</th></tr></thead>
+    <tbody>
+      <tr><td>Konkretne wpływowe konta (7 288 kont, test permutacyjny)</td><td>nieodróżnialne od kontroli losowej</td></tr>
+      <tr><td>Kohorty autorytetu (obserwujący, weryfikacja)</td><td>bez wpływu</td></tr>
+      <tr><td>Kohorty zasięgu (polubienia, podania dalej)</td><td>bez wpływu; top 1% kont r = +0,03</td></tr>
+      <tr><td>Sprzężenie zwrotne — czy spadek nakręca się sentymentem</td><td>brak (p = 0,91 / 0,63)</td></tr>
+      <tr><td>Reszta sentymentu po usunięciu wpływu ceny</td><td>brak</td></tr>
+      <tr><td>Wolumen wpisów → zmienność</td><td>brak <span class="dim">(sama cena: +0,226)</span></td></tr>
+      <tr><td>Horyzonty 2, 3, 5, 10, 20 dni</td><td>nic istotnego</td></tr>
+      <tr><td>Usunięcie kont automatycznych (19% korpusu)</td><td><em>pogarsza</em> pomiar</td></tr>
+    </tbody></table></div>
+  <div class="prose">
+    <h3>Porównanie modeli językowych</h3>
+    <p>
+      Oba modele raportowane osobno, bo uśredniona liczba ukryłaby różnicę.
+      Zgadzają się umiarkowanie (r = 0,66), a <strong>FinBERT jest wyraźnie lepszym
+      instrumentem</strong> mimo trenowania na prozie finansowej, nie na wpisach.
+      RoBERTa ma silne przesunięcie ku ocenom pozytywnym (średnia +0,20 wobec +0,015).
+    </p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Model</th><th class="num">średnia</th><th class="num">odch. std</th>
+      <th class="num">korelacja z ceną</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>FinBERT <span class="dim">(ProsusAI)</span></td><td class="num">+0,015</td><td class="num">0,032</td><td class="num">+0,128</td></tr>
+      <tr><td>Twitter-RoBERTa <span class="dim">(CardiffNLP)</span></td><td class="num">+0,203</td><td class="num">0,056</td><td class="num">+0,074</td></tr>
+    </tbody></table></div>
+</section>
+
+<!-- 07 -->
+<section>
+  <div class="sec-head"><span class="sec-num">07</span>
+    <h2 class="sec-title">Kontrola pozytywna: czy metoda wykrywa cokolwiek?</h2></div>
+  <div class="prose">
+    <p>
+      Każdy wynik zerowy zaprasza ten sam zarzut: <em>może wasza metoda po prostu
+      nie potrafi wykryć żadnego efektu sentymentu?</em> Odpowiedzią jest przypadek,
+      w którym wpływ mediów społecznościowych na kurs jest udokumentowany i
+      przypisany konkretnym wpisom — Dogecoin i wpisy Elona Muska z 2021 roku,
+      zestawione z cenami minutowymi.
+    </p>
+    <p>
+      Układ ma wbudowaną grupę kontrolną. Wpisy Muska niedotyczące kryptowalut
+      mają tego samego autora, ten sam rozkład godzin i tę samą publiczność, ale
+      nie zawierają treści o Dogecoinie — więc ruch ceny po nich jest punktem
+      odniesienia, który wpisy o DOGE muszą pobić.
+    </p>
+  </div>
+  <figure>
+    <p class="fig-title">Ruch kursu po wpisie Muska</p>
+    <p class="fig-sub">101 wpisów o Dogecoinie wobec 2 892 pozostałych, ceny minutowe</p>
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--series-3)"></span>wpisy o Dogecoinie</span>
+      <span><span class="swatch" style="background:var(--ink-3)"></span>pozostałe wpisy (kontrola)</span>
+    </div>
+    <div class="chart-scroll"><svg id="c-doge" viewBox="0 0 720 300" role="img"
+      aria-label="Po wpisach o Dogecoinie kurs rośnie o 2,2 do 2,6 procent, w kontroli o 0,1 do 0,3 procent."></svg></div>
+    <figcaption>
+      Efekt pojawia się natychmiast (+2,2% w ciągu pięciu minut), utrzymuje przez
+      godzinę i wygasa w ciągu czterech. Słupek po lewej stronie zera to placebo:
+      godzina <em>przed</em> wpisem, gdzie różnica wynosi +0,47 p.p. przy p = 0,33.
+      Musk nie pisze dlatego, że kurs już rośnie — przyczynowość biegnie we
+      właściwą stronę.
+    </figcaption>
+  </figure>
+
+  <div class="keynote">
+    <p>
+      <strong>Ale nasz pomiar sentymentu tego nie wychwytuje.</strong> Korelacja
+      wydźwięku wpisu z późniejszym ruchem: FinBERT r = +0,09 (p = 0,37),
+      RoBERTa r = −0,02 (p = 0,82). Podział wpisów na pozytywne i negatywne nie
+      różnicuje ruchu w ogóle (p = 0,46).
+    </p>
+  </div>
+
+  <div class="prose">
+    <p>Powód widać w największych wstrząsach — wszystkie mają wydźwięk bliski zeru:</p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Wpis</th><th class="num">ruch w 60 min</th><th class="num">ocena FinBERT</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>„Doge”</td><td class="num">+28,92%</td><td class="num">+0,01</td></tr>
+      <tr><td>„SpaceX is going to put a literal Dogecoin on the literal moon”</td><td class="num">+21,37%</td><td class="num">+0,03</td></tr>
+      <tr><td>„Tesla will make some merch buyable with Doge”</td><td class="num">+20,87%</td><td class="num">+0,09</td></tr>
+      <tr><td>„Dogecoin is the people’s crypto”</td><td class="num">−14,63%</td><td class="num">−0,01</td></tr>
+    </tbody></table></div>
+
+  <div class="prose">
+    <p>
+      Informacja nie leży na osi pozytyw–negatyw. Leży w <strong>samym fakcie
+      wzmianki</strong>. To wyrazistość i uwaga, nie polaryzacja — a więc wielkość,
+      której ten potok z założenia nie mierzy.
+    </p>
+
+    <h3>Dlaczego wzmianka podnosi kurs niezależnie od wydźwięku</h3>
+    <p>
+      Mechanizm opisali Barber i Odean (2008). Inwestor detaliczny może <em>kupić
+      cokolwiek</em>, co przyciągnie jego uwagę, ale <em>sprzedać tylko to, co już
+      posiada</em>. Uwaga wytwarza więc przewagę presji kupna niezależnie od tonu
+      wypowiedzi — kierunek wynika z asymetrii samego mechanizmu, nie z treści.
+      Da, Engelberg i Gao (2011) pokazali z kolei, że uwagę da się mierzyć
+      bez analizy treści, samym wolumenem zapytań.
+    </p>
+    <p>
+      Teoria przewiduje coś jeszcze: kupno bez podstawy fundamentalnej powinno
+      zostać oddane. Dane to potwierdzają.
+    </p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Horyzont po wpisie</th><th class="num">nadwyżka nad kontrolą</th><th class="num">p</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>15 minut</td><td class="num ok">+2,38%</td><td class="num">&lt;0,0001</td></tr>
+      <tr><td>1 godzina</td><td class="num">+1,71%</td><td class="num">0,001</td></tr>
+      <tr><td>4 godziny</td><td class="num">+0,93%</td><td class="num">0,18</td></tr>
+      <tr><td>1 dzień</td><td class="num">+1,07%</td><td class="num">0,60</td></tr>
+      <tr class="hi"><td>1 tydzień</td><td class="num">−10,32%</td><td class="num">0,016</td></tr>
+    </tbody></table></div>
+  <div class="prose">
+    <p>
+      Ostry wzrost, zanik do nieistotności w cztery godziny, a po tygodniu
+      <strong>istotnie ujemna nadwyżka</strong> — pełne odwrócenie. To sygnatura
+      kupna napędzanego uwagą, nie wyceniania informacji.
+    </p>
+    <p class="dim" style="font-size:14px">
+      Zastrzeżenie: przy 101 zdarzeniach w jednym roku tygodniowe okna mocno na
+      siebie zachodzą, więc zdarzenia nie są niezależne i długi horyzont jest
+      obarczony nadmierną pewnością. Ciężar dowodu spoczywa na krótkich
+      horyzontach, gdzie okna niemal się nie nakładają.
+    </p>
+    <p>
+      Wniosek jest mocniejszy niż „metoda działa” albo „metoda nie działa”. Aparat
+      jest technicznie sprawny: na tych samych danych wykrywa efekt z t = +5,55.
+      Mierzy jednak <strong>niewłaściwy konstrukt dla tego typu zjawiska</strong>.
+      Efekt Muska to szok uwagi pojedynczego aktora, jakościowo różny od
+      zagregowanego nastroju tłumu. Wyniki zerowe dla Bitcoina należy więc czytać
+      precyzyjnie: <em>zagregowana polaryzacja nastrojów nie wyprzedza ceny</em> —
+      a nie <em>media społecznościowe nie wpływają na kurs</em>.
+    </p>
+    <p class="dim" style="font-size:14px">
+      Zastrzeżenie: przy 101 wpisach o Dogecoinie wykrywalne były wyłącznie
+      korelacje powyżej 0,28, więc drugi poziom kontroli jest niedomiarowany dla
+      efektów umiarkowanych. Test podziału na pozytywne i negatywne ma większą moc
+      i również nie pokazuje różnicy, a kontrast między t = +5,55 dla samej wzmianki
+      a r ≈ 0,09 dla wydźwięku jest jakościowy, nie ilościowy.
+    </p>
+  </div>
+</section>
+
+<!-- 08 -->
+<section>
+  <div class="sec-head"><span class="sec-num">08</span>
+    <h2 class="sec-title">Czy problemem jest Twitter, czy media społecznościowe?</h2></div>
+  <div class="prose">
+    <p>
+      Uzasadniony zarzut wobec wszystkich dotychczasowych wyników brzmi: może
+      Twitter jest po prostu kiepskim źródłem — krótkie wpisy, zaśmiecenie
+      automatami, wątpliwe metryki zaangażowania. Porównanie musi więc być wąskie,
+      żeby różnica dała się przypisać platformie: <strong>ten sam aktyw
+      (Bitcoin), ten sam rok (2022), te same modele, te same testy</strong>.
+    </p>
+    <p>
+      Reddit ma przy tym przewagi, których Twitter nie oferował: 365 kolejnych dni
+      bez ani jednej przerwy (najlepszy korpus twitterowy dawał 222 dni rozrzucone
+      po 703), dłuższe teksty oraz prawdziwy sygnał zaangażowania — liczbę
+      komentarzy i <em>upvote ratio</em>, czyli bezpośrednią miarę niezgody
+      społeczności, która nie ma twitterowego odpowiednika.
+    </p>
+  </div>
+
+  <figure>
+    <p class="fig-title">Z którym dniem wiąże się sentyment z Reddita</p>
+    <p class="fig-sub">362 dni, 326 tys. postów z czterech subredditów kryptowalutowych</p>
+    <div class="chart-scroll"><svg id="c-lag" viewBox="0 0 720 280" role="img"
+      aria-label="Korelacja z dniem poprzednim 0,29, z bieżącym 0,18, z następnym 0,01."></svg></div>
+    <figcaption>
+      Najsilniejszy związek zachodzi z <strong>dniem poprzednim</strong>, nie
+      bieżącym — pierwszy raz w całym badaniu widzimy odwróconą kolejność.
+      Ma to naturalne wytłumaczenie: posty na Reddicie są dłuższe i pisane jako
+      refleksja nad tym, co już się wydarzyło, więc opóźnienie jest większe niż
+      na Twitterze. Struktura opóźnień różni się między platformami, choć wniosek
+      pozostaje ten sam.
+    </figcaption>
+  </figure>
+
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Pomiar <span class="dim">(Bitcoin, 2022)</span></th>
+      <th class="num">Reddit</th><th class="num">Twitter</th></tr></thead>
+    <tbody>
+      <tr><td>dni w próbie</td><td class="num">362</td><td class="num">115 <span class="dim">(wspólne)</span></td></tr>
+      <tr class="hi"><td>zgodność obu platform</td><td class="num" colspan="2">r = +0,761</td></tr>
+      <tr><td>sentyment → cena tego samego dnia</td><td class="num">+0,225</td><td class="num">+0,352</td></tr>
+      <tr><td>sentyment → następny dzień</td><td class="num">−0,028</td><td class="num">−0,105</td></tr>
+    </tbody></table></div>
+
+  <div class="keynote">
+    <p>
+      <strong>Odpowiedź brzmi: to nie wina platformy.</strong> Gdyby Twitter był
+      wadliwym instrumentem, Reddit pokazałby coś innego. Pokazuje to samo — i obie
+      platformy korelują ze sobą na poziomie 0,76, więc mierzą wspólne zjawisko,
+      a nie dwa różne.
+    </p>
+  </div>
+
+  <div class="prose">
+    <p>
+      Reddit dostarczył też <strong>trzeci i czwarty fałszywy alarm</strong>.
+      Wolumen postów i <em>upvote ratio</em> wyglądały na predyktory jutrzejszej
+      zmienności i przetrwały kontrolę pięcioma opóźnieniami zmienności — obalił je
+      dopiero ten sam test kierunkowości co poprzednio.
+    </p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Sygnał <span class="dim">(→ zmienność)</span></th>
+      <th class="num">w przód</th><th class="num">placebo</th><th>werdykt</th></tr></thead>
+    <tbody>
+      <tr><td>wolumen postów</td><td class="num">t = +2,35</td><td class="num">t = +3,27</td><td>wsteczny 1,7× silniejszy</td></tr>
+      <tr><td>upvote ratio</td><td class="num">t = +2,33</td><td class="num">t = +2,02</td><td>praktycznie symetryczny</td></tr>
+    </tbody></table></div>
+</section>
+
+<!-- 09 -->
+<section>
+  <div class="sec-head"><span class="sec-num">09</span>
+    <h2 class="sec-title">Ograniczenia i dalsze kroki</h2></div>
+  <div class="prose">
+    <ul class="notes">
+      <li><strong>Wielokrotne testowanie.</strong> W całym badaniu przeprowadzono ponad
+        80 testów na powiązanych danych. Liczba jest raportowana jawnie; wynik dla akcji
+        był hipotezą postawioną z góry, a jego wzorzec (luka tak, ruch śródsesyjny nie)
+        był przewidziany przed pomiarem.</li>
+      <li><strong>Analiza per konto była niedomiarowana.</strong> Przy 25–50 obserwacjach
+        na konto wykrywalne były wyłącznie korelacje powyżej 0,39. Uczciwe sformułowanie
+        brzmi: nie znaleziono kont o bardzo silnym wpływie.</li>
+      <li><strong>Uwaga zamiast wydźwięku.</strong> Kontrola pozytywna wskazała
+        konkretny brakujący konstrukt: miary wyrazistości i uwagi (kto wspomniał,
+        jak nagle, jak nietypowo) zamiast osi pozytyw–negatyw. To najlepiej
+        umocowany kierunek dalszych prac, bo wynika z pomiaru, a nie z domysłu.</li>
+      <li><strong>Nieprzebadane konstrukcje sygnału.</strong> Kategorie emocji zamiast
+        polaryzacji oraz przypisanie sentymentu do konkretnego bytu w wpisie
+        wielotematycznym.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <p>
+    <strong>Nota metodologiczna.</strong> Trafność kierunkowa liczona poza próbą
+    w walidacji kroczącej; skalery dopasowywane wyłącznie na danych treningowych
+    w obrębie okna. Sentyment: FinBERT (ProsusAI) i Twitter-RoBERTa (CardiffNLP),
+    wynik jako różnica prawdopodobieństw klas skrajnych; etykiety obu modeli
+    zweryfikowane wobec ich konfiguracji. Ceny godzinowe i minutowe: Binance.
+    Zbiór akcji: Xu &amp; Cohen (ACL 2018).
+  </p>
+  <p>
+    Inferencja przy szeregach czasowych: błędy Newey-West (24 opóźnienia) lub
+    klastrowane po dacie, uzupełnione bootstrapem blokowym i testami permutacyjnymi
+    z nullem niszczącym wyrównanie czasowe. Wyniki sieci uśredniane z 3 ziaren losowych.
+  </p>
+</footer>
+
+</div>
+<div class="tooltip" id="tip"></div>
+
+<script>
+(function(){
+  const NS='http://www.w3.org/2000/svg';
+  const tip=document.getElementById('tip');
+  const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+  function show(ev,txt){tip.textContent=txt;tip.style.opacity='1';const pad=14;let x=ev.clientX+pad,y=ev.clientY+pad;
+    const r=tip.getBoundingClientRect();
+    if(x+r.width>window.innerWidth-8)x=ev.clientX-r.width-pad;
+    if(y+r.height>window.innerHeight-8)y=ev.clientY-r.height-pad;
+    tip.style.left=x+'px';tip.style.top=y+'px';}
+  const hide=()=>{tip.style.opacity='0';};
+  const mono='ui-monospace, Menlo, monospace';
+
+  function volume(){
+    const svg=document.getElementById('c-vol'); if(!svg) return; svg.innerHTML='';
+    const pts=[{n:2,r:0.071,l:'akcje',c:3},{n:7,r:0.181,l:'akcje',c:3},
+               {n:14,r:0.228,l:'akcje',c:3},{n:30,r:0.317,l:'akcje',c:3},
+               {n:77,r:-0.005,l:'BTC 2016–19',c:1},{n:186,r:0.129,l:'BTC 2016–19',c:1},
+               {n:340,r:0.161,l:'BTC 2016–19',c:1},{n:37399,r:0.360,l:'BTC 2016–19',c:1},
+               {n:14232,r:0.416,l:'BTC 2021–23',c:2}];
+    const W=720,H=300,mL=54,mR=24,mT=20,mB=52,pw=W-mL-mR,ph=H-mT-mB;
+    const lx=v=>Math.log10(Math.max(v,1));
+    const x0=lx(1.2),x1=lx(60000);
+    const X=v=>mL+(lx(v)-x0)/(x1-x0)*pw;
+    const Y=v=>mT+ph-(v+0.05)/0.50*ph;
+    [-0.05,0.05,0.15,0.25,0.35,0.45].forEach(v=>{
+      el('line',{x1:mL,x2:mL+pw,y1:Y(v),y2:Y(v),stroke:css('--rule'),'stroke-width':1},svg);
+      const t=el('text',{x:mL-9,y:Y(v)+4,'text-anchor':'end',fill:css('--ink-3'),'font-size':11},svg);
+      t.setAttribute('font-family',mono); t.textContent=v.toFixed(2).replace('.',',');});
+    [10,100,1000,10000].forEach(v=>{
+      el('line',{x1:X(v),x2:X(v),y1:mT,y2:mT+ph,stroke:css('--rule'),'stroke-width':1},svg);
+      const t=el('text',{x:X(v),y:H-mB+20,'text-anchor':'middle',fill:css('--ink-3'),'font-size':11},svg);
+      t.setAttribute('font-family',mono); t.textContent=v.toLocaleString('pl-PL');});
+    el('line',{x1:mL,x2:mL+pw,y1:Y(0),y2:Y(0),stroke:css('--ink-3'),'stroke-width':1,'stroke-dasharray':'3 3'},svg);
+    const colOf=c=>c===3?css('--series-3'):(c===2?css('--series-2'):css('--series-1'));
+    [1,3].forEach(cc=>{
+      const grp=pts.filter(p=>p.c===cc).sort((a,b)=>a.n-b.n);
+      let dd=''; grp.forEach((p,i)=>{dd+=(i?'L':'M')+X(p.n).toFixed(1)+' '+Y(p.r).toFixed(1)+' ';});
+      el('path',{d:dd.trim(),fill:'none',stroke:colOf(cc),'stroke-width':2,opacity:.4},svg);});
+    pts.forEach(p=>{
+      const c=el('circle',{cx:X(p.n),cy:Y(p.r),r:5.5,fill:colOf(p.c),
+        stroke:css('--surface'),'stroke-width':2},svg);
+      c.addEventListener('mousemove',e=>show(e,`${p.l}\n${p.n.toLocaleString('pl-PL')} wpisów\nr = ${p.r.toFixed(3).replace('.',',')}`));
+      c.addEventListener('mouseleave',hide);});
+    const xl=el('text',{x:mL+pw/2,y:H-10,'text-anchor':'middle',fill:css('--ink-2'),'font-size':12},svg);
+    xl.textContent='mediana liczby wpisów w jednostce obserwacji (skala logarytmiczna)';
+    el('line',{x1:mL,x2:mL+pw,y1:mT+ph,y2:mT+ph,stroke:css('--rule-strong'),'stroke-width':1},svg);
+  }
+
+  function intraday(){
+    const svg=document.getElementById('c-intra'); if(!svg) return; svg.innerHTML='';
+    const rows=[[4,0.0361,-0.083,0.154,0.4461,0.346,0.536],
+                [6,-0.0290,-0.119,0.062,0.3424,0.260,0.420],
+                [8,0.0272,-0.050,0.104,0.3500,0.280,0.416],
+                [12,0.0246,-0.045,0.094,0.4086,0.349,0.465],
+                [16,0.0468,-0.028,0.121,0.3933,0.329,0.454],
+                [18,0.0179,-0.066,0.102,0.4390,0.369,0.504],
+                [20,0.1144,0.010,0.217,0.4003,0.308,0.485]];
+    const W=720,H=330,mL=56,mR=24,mT=22,mB=56,pw=W-mL-mR,ph=H-mT-mB;
+    const lo=-0.15,hi=0.58;
+    const Y=v=>mT+ph-(v-lo)/(hi-lo)*ph;
+    const colW=pw/rows.length;
+    [-0.1,0,0.1,0.2,0.3,0.4,0.5].forEach(v=>{
+      el('line',{x1:mL,x2:mL+pw,y1:Y(v),y2:Y(v),stroke:css('--rule'),'stroke-width':1},svg);
+      const t=el('text',{x:mL-9,y:Y(v)+4,'text-anchor':'end',fill:css('--ink-3'),'font-size':11},svg);
+      t.setAttribute('font-family',mono); t.textContent=v.toFixed(1).replace('.',',');});
+    el('line',{x1:mL,x2:mL+pw,y1:Y(0),y2:Y(0),stroke:css('--ink-2'),'stroke-width':1.5,'stroke-dasharray':'4 3'},svg);
+    rows.forEach((r,i)=>{
+      const cx=mL+colW*i+colW/2;
+      [[r[4],r[5],r[6],css('--series-2'),'reakcja',-9],
+       [r[1],r[2],r[3],css('--series-1'),'predykcja',9]].forEach(s=>{
+        const x=cx+s[5];
+        el('line',{x1:x,x2:x,y1:Y(s[1]),y2:Y(s[2]),stroke:s[3],'stroke-width':2},svg);
+        [s[1],s[2]].forEach(e2=>el('line',{x1:x-4,x2:x+4,y1:Y(e2),y2:Y(e2),stroke:s[3],'stroke-width':2},svg));
+        const c=el('circle',{cx:x,cy:Y(s[0]),r:5,fill:s[3],stroke:css('--surface'),'stroke-width':2},svg);
+        c.addEventListener('mousemove',ev=>show(ev,`cięcie ${r[0]}h\n${s[4]}\nr = ${s[0].toFixed(3).replace('.',',')}`));
+        c.addEventListener('mouseleave',hide);});
+      const t=el('text',{x:cx,y:H-mB+20,'text-anchor':'middle',fill:css('--ink-2'),'font-size':11.5},svg);
+      t.setAttribute('font-family',mono); t.textContent=r[0]+'h';});
+    const xl=el('text',{x:mL+pw/2,y:H-12,'text-anchor':'middle',fill:css('--ink-2'),'font-size':12},svg);
+    xl.textContent='godzina, w której przecinamy dobę';
+    el('line',{x1:mL,x2:mL+pw,y1:mT+ph,y2:mT+ph,stroke:css('--rule-strong'),'stroke-width':1},svg);
+  }
+
+  function gap(){
+    const svg=document.getElementById('c-gap'); if(!svg) return; svg.innerHTML='';
+    const rows=[['luka otwarcia  (rynek zamknięty)',6.20,true],
+                ['ruch śródsesyjny  (rynek handluje)',0.46,false],
+                ['placebo: poprzednia luka',2.34,false]];
+    const W=720,H=230,mL=250,mR=60,mT=22,mB=46,pw=W-mL-mR,ph=H-mT-mB;
+    const X=v=>mL+v/7*pw;
+    const rowH=ph/rows.length;
+    [0,2,4,6].forEach(v=>{
+      el('line',{x1:X(v),x2:X(v),y1:mT,y2:mT+ph,stroke:css('--rule'),'stroke-width':1},svg);
+      const t=el('text',{x:X(v),y:H-mB+20,'text-anchor':'middle',fill:css('--ink-3'),'font-size':11},svg);
+      t.setAttribute('font-family',mono); t.textContent='t='+v;});
+    el('line',{x1:X(1.96),x2:X(1.96),y1:mT-4,y2:mT+ph,stroke:css('--ink-2'),
+      'stroke-width':2,'stroke-dasharray':'5 4'},svg);
+    const lb=el('text',{x:X(1.96)+6,y:mT+10,fill:css('--ink-2'),'font-size':11},svg);
+    lb.textContent='próg istotności';
+    rows.forEach((r,i)=>{
+      const cy=mT+rowH*i+rowH/2, bh=24;
+      const bar=el('rect',{x:mL,y:cy-bh/2,width:Math.max(X(r[1])-mL,2),height:bh,rx:3,
+        fill:r[2]?css('--series-3'):css('--series-1'),opacity:r[2]?1:.6},svg);
+      bar.addEventListener('mousemove',e=>show(e,`${r[0]}\nt = ${r[1].toFixed(2).replace('.',',')}`));
+      bar.addEventListener('mouseleave',hide);
+      const t=el('text',{x:mL-12,y:cy+4,'text-anchor':'end',fill:css('--ink-2'),'font-size':12.5},svg);
+      t.textContent=r[0];
+      const v=el('text',{x:X(r[1])+9,y:cy+4,fill:css('--ink-2'),'font-size':12},svg);
+      v.setAttribute('font-family',mono); v.textContent='t='+r[1].toFixed(2).replace('.',',');});
+    el('line',{x1:mL,x2:mL,y1:mT,y2:mT+ph,stroke:css('--rule-strong'),'stroke-width':1},svg);
+  }
+
+  function doge(){
+    const svg=document.getElementById('c-doge'); if(!svg) return; svg.innerHTML='';
+    // [label, doge %, control %, significant]
+    const rows=[['−60 min\n(placebo)',0.788,0.322,false],
+                ['+5 min',2.234,0.107,true],['+15 min',2.565,0.181,true],
+                ['+30 min',2.253,0.249,true],['+60 min',2.044,0.330,true],
+                ['+240 min',1.702,0.768,false]];
+    const W=720,H=300,mL=52,mR=20,mT=22,mB=56,pw=W-mL-mR,ph=H-mT-mB;
+    const Y=v=>mT+ph-v/3.0*ph;
+    const colW=pw/rows.length;
+    [0,0.5,1.0,1.5,2.0,2.5,3.0].forEach(v=>{
+      el('line',{x1:mL,x2:mL+pw,y1:Y(v),y2:Y(v),stroke:css('--rule'),'stroke-width':1},svg);
+      const t=el('text',{x:mL-9,y:Y(v)+4,'text-anchor':'end',fill:css('--ink-3'),'font-size':11},svg);
+      t.setAttribute('font-family',mono); t.textContent=v.toFixed(1).replace('.',',')+'%';});
+    // separate the placebo column from the forward ones
+    el('line',{x1:mL+colW,x2:mL+colW,y1:mT,y2:mT+ph,stroke:css('--rule-strong'),
+      'stroke-width':1.5,'stroke-dasharray':'4 3'},svg);
+    rows.forEach((r,i)=>{
+      const cx=mL+colW*i+colW/2, bw=17, gp=4;
+      [[r[1],css('--series-3'),'wpisy o Dogecoinie',-(bw+gp)/2],
+       [r[2],css('--ink-3'),'kontrola',(bw+gp)/2]].forEach(s=>{
+        const x=cx+s[3]-bw/2;
+        const bar=el('rect',{x:x,y:Y(s[0]),width:bw,height:Math.max(mT+ph-Y(s[0]),1),
+          rx:3,fill:s[1],opacity:r[3]?1:.55},svg);
+        bar.addEventListener('mousemove',e=>show(e,`${r[0].replace('\n',' ')}\n${s[2]}: ${s[0].toFixed(3).replace('.',',')}%`));
+        bar.addEventListener('mouseleave',hide);});
+      r[0].split('\n').forEach((ln,k)=>{
+        const t=el('text',{x:cx,y:H-mB+20+k*13,'text-anchor':'middle',
+          fill:css('--ink-2'),'font-size':11.5},svg);
+        t.textContent=ln;});
+      if(r[3]){
+        const st=el('text',{x:cx,y:Y(r[1])-7,'text-anchor':'middle',
+          fill:css('--series-3'),'font-size':12,'font-weight':700},svg);
+        st.textContent='✓';}
+    });
+    const yl=el('text',{x:14,y:mT+ph/2,fill:css('--ink-2'),'font-size':12,'text-anchor':'middle',
+      transform:`rotate(-90 14 ${mT+ph/2})`},svg); yl.textContent='średnia zmiana kursu DOGE';
+    el('line',{x1:mL,x2:mL+pw,y1:mT+ph,y2:mT+ph,stroke:css('--rule-strong'),'stroke-width':1},svg);
+  }
+
+  function quint(){
+    const svg=document.getElementById('c-quint'); if(!svg) return; svg.innerHTML='';
+    const gapv=[-3.59,4.27,5.86,21.78,26.78];
+    const intr=[-1.95,-3.98,-0.75,2.27,-1.82];
+    const W=720,H=300,mL=58,mR=24,mT=24,mB=56,pw=W-mL-mR,ph=H-mT-mB;
+    const lo=-8,hi=30;
+    const Y=v=>mT+ph-(v-lo)/(hi-lo)*ph;
+    const colW=pw/5;
+    [-5,0,5,10,15,20,25,30].forEach(v=>{
+      el('line',{x1:mL,x2:mL+pw,y1:Y(v),y2:Y(v),stroke:css('--rule'),'stroke-width':1},svg);
+      const t=el('text',{x:mL-9,y:Y(v)+4,'text-anchor':'end',fill:css('--ink-3'),'font-size':11},svg);
+      t.setAttribute('font-family',mono); t.textContent=v;});
+    el('line',{x1:mL,x2:mL+pw,y1:Y(0),y2:Y(0),stroke:css('--ink-2'),'stroke-width':1.5},svg);
+    for(let i=0;i<5;i++){
+      const cx=mL+colW*i+colW/2, bw=22, gp=5;
+      [[gapv[i],css('--series-3'),'luka otwarcia',-(bw+gp)/2],
+       [intr[i],css('--ink-3'),'ruch śródsesyjny',(bw+gp)/2]].forEach(s=>{
+        const x=cx+s[3]-bw/2;
+        const top=Math.min(Y(s[0]),Y(0)), h=Math.abs(Y(s[0])-Y(0));
+        const bar=el('rect',{x:x,y:top,width:bw,height:Math.max(h,1.5),rx:3,
+          fill:s[1],opacity:s[1]===css('--ink-3')?.55:1},svg);
+        bar.addEventListener('mousemove',e=>show(e,`grupa ${i+1}/5\n${s[2]}: ${s[0].toFixed(2).replace('.',',')} bp`));
+        bar.addEventListener('mouseleave',hide);});
+      const t=el('text',{x:cx,y:H-mB+21,'text-anchor':'middle',fill:css('--ink-2'),'font-size':12},svg);
+      t.textContent=(i+1)+'/5';
+      if(i===0||i===4){
+        const lab=el('text',{x:cx,y:H-mB+37,'text-anchor':'middle',fill:css('--ink-3'),'font-size':10.5},svg);
+        lab.textContent=i===0?'najniższy':'najwyższy';}
+    }
+    const yl=el('text',{x:15,y:mT+ph/2,fill:css('--ink-2'),'font-size':12,'text-anchor':'middle',
+      transform:`rotate(-90 15 ${mT+ph/2})`},svg);
+    yl.textContent='średni ruch (punkty bazowe)';
+    const xl=el('text',{x:mL+pw/2,y:H-6,'text-anchor':'middle',fill:css('--ink-2'),'font-size':12},svg);
+    xl.textContent='grupa według sentymentu w oknie zamknięcia';
+    el('line',{x1:mL,x2:mL,y1:mT,y2:mT+ph,stroke:css('--rule-strong'),'stroke-width':1},svg);
+  }
+
+  function lag(){
+    const svg=document.getElementById('c-lag'); if(!svg) return; svg.innerHTML='';
+    const rows=[['dzień poprzedni',0.291,0.194,0.383],
+                ['dzień bieżący',0.184,0.082,0.282],
+                ['dzień następny',0.015,-0.088,0.118]];
+    const W=720,H=280,mL=150,mR=40,mT=24,mB=52,pw=W-mL-mR,ph=H-mT-mB;
+    const lo=-0.15,hi=0.45;
+    const X=v=>mL+(v-lo)/(hi-lo)*pw;
+    const rowH=ph/rows.length;
+    [-0.1,0,0.1,0.2,0.3,0.4].forEach(v=>{
+      el('line',{x1:X(v),x2:X(v),y1:mT,y2:mT+ph,stroke:css('--rule'),'stroke-width':1},svg);
+      const t=el('text',{x:X(v),y:H-mB+20,'text-anchor':'middle',fill:css('--ink-3'),'font-size':11},svg);
+      t.setAttribute('font-family',mono); t.textContent=v.toFixed(1).replace('.',',');});
+    el('line',{x1:X(0),x2:X(0),y1:mT,y2:mT+ph,stroke:css('--ink-2'),'stroke-width':1.5},svg);
+    rows.forEach((r,i)=>{
+      const cy=mT+rowH*i+rowH/2, bh=26;
+      const strong=i===0;
+      const x0=Math.min(X(r[1]),X(0)), w=Math.abs(X(r[1])-X(0));
+      const bar=el('rect',{x:x0,y:cy-bh/2,width:Math.max(w,2),height:bh,rx:3,
+        fill:strong?css('--series-2'):css('--series-1'),opacity:r[1]<0.05?.4:1},svg);
+      bar.addEventListener('mousemove',e=>show(e,`${r[0]}\nr = ${r[1].toFixed(3).replace('.',',')}  [${r[2].toFixed(3).replace('.',',')}; ${r[3].toFixed(3).replace('.',',')}]`));
+      bar.addEventListener('mouseleave',hide);
+      el('line',{x1:X(r[2]),x2:X(r[3]),y1:cy,y2:cy,stroke:css('--ink'),'stroke-width':1.5,opacity:.5},svg);
+      [r[2],r[3]].forEach(e2=>el('line',{x1:X(e2),x2:X(e2),y1:cy-5,y2:cy+5,
+        stroke:css('--ink'),'stroke-width':1.5,opacity:.5},svg));
+      const t=el('text',{x:mL-14,y:cy+4,'text-anchor':'end',fill:css('--ink-2'),
+        'font-size':13,'font-weight':strong?650:400},svg);
+      t.textContent=r[0];
+      const v=el('text',{x:X(r[3])+10,y:cy+4,fill:css('--ink-2'),'font-size':11.5},svg);
+      v.setAttribute('font-family',mono); v.textContent='r='+r[1].toFixed(3).replace('.',',');});
+    const xl=el('text',{x:mL+pw/2,y:H-8,'text-anchor':'middle',fill:css('--ink-2'),'font-size':12},svg);
+    xl.textContent='korelacja sentymentu ze zwrotem danego dnia';
+  }
+
+  function all(){volume();intraday();gap();doge();quint();lag();}
+  all();
+  window.addEventListener('resize',all);
+  const mq=window.matchMedia('(prefers-color-scheme: dark)');
+  mq.addEventListener&&mq.addEventListener('change',all);
+})();
+</script>
