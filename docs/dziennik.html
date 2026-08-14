@@ -118,9 +118,10 @@
   <p class="eyebrow">Dziennik badawczy · praca magisterska · aktualizacja 12.08.2026</p>
   <h1>Sentyment społecznościowy a rynki: kiedy wyprzedza, a kiedy tylko reaguje</h1>
   <p class="standfirst">
-    Cztery zbiory danych, trzy aktywa. Na Bitcoinie sentyment wyłącznie reaguje
-    na cenę. Na akcjach — przewiduje lukę otwarcia. A tam, gdzie wpływ jest
-    bezsporny, porusza nim nie wydźwięk wpisu, lecz sam fakt wzmianki.
+    Pięć zbiorów, dwie platformy, trzy aktywa. Na Bitcoinie sentyment wyłącznie
+    reaguje na cenę — tak samo na Twitterze jak na Reddicie. Na akcjach przewiduje
+    lukę otwarcia. A tam, gdzie wpływ jest bezsporny, porusza nim nie wydźwięk
+    wpisu, lecz sam fakt wzmianki.
   </p>
 </header>
 
@@ -150,12 +151,19 @@
     sam fakt wzmianki, nie jej wydźwięk. Mierzona wielkość to polaryzacja;
     zjawisko okazało się szokiem uwagi.
   </p>
+  <p>
+    <strong>To nie wina platformy.</strong> Reddit, zbadany na tym samym aktywie
+    i w tym samym roku, daje identyczną odpowiedź, a obie platformy korelują ze
+    sobą na poziomie <strong>0,76</strong> — mierzą to samo zjawisko. Na Reddicie
+    kanał reakcji jest wręcz wyraźniejszy: sentyment wiąże się z ceną <em>dnia
+    poprzedniego</em> silniej niż z bieżącym.
+  </p>
 </div>
 
 <div class="tiles">
   <div class="tile"><p class="k">Akcje: sentyment → luka</p><p class="v ok">t = +6,2</p><p class="s">0 z 500 permutacji</p></div>
   <div class="tile"><p class="k">Rozpiętość kwantylowa</p><p class="v ok">+30 bp</p><p class="s">monotonicznie, 5 grup</p></div>
-  <div class="tile"><p class="k">BTC: reakcja / predykcja</p><p class="v">0,41 / 0,02</p><p class="s">CI się nie stykają</p></div>
+  <div class="tile"><p class="k">Zgodność platform</p><p class="v">0,76</p><p class="s">Twitter kontra Reddit</p></div>
   <div class="tile"><p class="k">Kontrola: wzmianka vs wydźwięk</p><p class="v">+2,4 p.p.</p><p class="s">sentyment: r ≈ 0,09 (n.i.)</p></div>
 </div>
 
@@ -391,8 +399,10 @@
   <div class="tbl-wrap"><table>
     <thead><tr><th>Hipoteza</th><th class="num">w przód</th><th class="num">placebo (wstecz)</th><th>werdykt</th></tr></thead>
     <tbody>
-      <tr><td>Rozproszenie opinii → zmienność</td><td class="num">t = +2,41</td><td class="num">t = +3,47</td><td>odrzucona</td></tr>
-      <tr class="hi"><td>Sentyment nocny → luka otwarcia</td><td class="num">t = +6,20</td><td class="num">t = +2,34</td><td class="ok">utrzymana</td></tr>
+      <tr><td>Rozproszenie opinii → zmienność <span class="dim">(BTC)</span></td><td class="num">t = +2,41</td><td class="num">t = +3,47</td><td>odrzucona</td></tr>
+      <tr><td>Wolumen postów → zmienność <span class="dim">(Reddit)</span></td><td class="num">t = +2,35</td><td class="num">t = +3,27</td><td>odrzucona</td></tr>
+      <tr><td>Upvote ratio → zmienność <span class="dim">(Reddit)</span></td><td class="num">t = +2,33</td><td class="num">t = +2,02</td><td>odrzucona</td></tr>
+      <tr class="hi"><td>Sentyment nocny → luka otwarcia <span class="dim">(akcje)</span></td><td class="num">t = +6,20</td><td class="num">t = +2,34</td><td class="ok">utrzymana</td></tr>
     </tbody></table></div>
   <div class="prose">
     <p>
@@ -532,6 +542,78 @@
 <!-- 08 -->
 <section>
   <div class="sec-head"><span class="sec-num">08</span>
+    <h2 class="sec-title">Czy problemem jest Twitter, czy media społecznościowe?</h2></div>
+  <div class="prose">
+    <p>
+      Uzasadniony zarzut wobec wszystkich dotychczasowych wyników brzmi: może
+      Twitter jest po prostu kiepskim źródłem — krótkie wpisy, zaśmiecenie
+      automatami, wątpliwe metryki zaangażowania. Porównanie musi więc być wąskie,
+      żeby różnica dała się przypisać platformie: <strong>ten sam aktyw
+      (Bitcoin), ten sam rok (2022), te same modele, te same testy</strong>.
+    </p>
+    <p>
+      Reddit ma przy tym przewagi, których Twitter nie oferował: 365 kolejnych dni
+      bez ani jednej przerwy (najlepszy korpus twitterowy dawał 222 dni rozrzucone
+      po 703), dłuższe teksty oraz prawdziwy sygnał zaangażowania — liczbę
+      komentarzy i <em>upvote ratio</em>, czyli bezpośrednią miarę niezgody
+      społeczności, która nie ma twitterowego odpowiednika.
+    </p>
+  </div>
+
+  <figure>
+    <p class="fig-title">Z którym dniem wiąże się sentyment z Reddita</p>
+    <p class="fig-sub">362 dni, 326 tys. postów z czterech subredditów kryptowalutowych</p>
+    <div class="chart-scroll"><svg id="c-lag" viewBox="0 0 720 280" role="img"
+      aria-label="Korelacja z dniem poprzednim 0,29, z bieżącym 0,18, z następnym 0,01."></svg></div>
+    <figcaption>
+      Najsilniejszy związek zachodzi z <strong>dniem poprzednim</strong>, nie
+      bieżącym — pierwszy raz w całym badaniu widzimy odwróconą kolejność.
+      Ma to naturalne wytłumaczenie: posty na Reddicie są dłuższe i pisane jako
+      refleksja nad tym, co już się wydarzyło, więc opóźnienie jest większe niż
+      na Twitterze. Struktura opóźnień różni się między platformami, choć wniosek
+      pozostaje ten sam.
+    </figcaption>
+  </figure>
+
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Pomiar <span class="dim">(Bitcoin, 2022)</span></th>
+      <th class="num">Reddit</th><th class="num">Twitter</th></tr></thead>
+    <tbody>
+      <tr><td>dni w próbie</td><td class="num">362</td><td class="num">115 <span class="dim">(wspólne)</span></td></tr>
+      <tr class="hi"><td>zgodność obu platform</td><td class="num" colspan="2">r = +0,761</td></tr>
+      <tr><td>sentyment → cena tego samego dnia</td><td class="num">+0,225</td><td class="num">+0,352</td></tr>
+      <tr><td>sentyment → następny dzień</td><td class="num">−0,028</td><td class="num">−0,105</td></tr>
+    </tbody></table></div>
+
+  <div class="keynote">
+    <p>
+      <strong>Odpowiedź brzmi: to nie wina platformy.</strong> Gdyby Twitter był
+      wadliwym instrumentem, Reddit pokazałby coś innego. Pokazuje to samo — i obie
+      platformy korelują ze sobą na poziomie 0,76, więc mierzą wspólne zjawisko,
+      a nie dwa różne.
+    </p>
+  </div>
+
+  <div class="prose">
+    <p>
+      Reddit dostarczył też <strong>trzeci i czwarty fałszywy alarm</strong>.
+      Wolumen postów i <em>upvote ratio</em> wyglądały na predyktory jutrzejszej
+      zmienności i przetrwały kontrolę pięcioma opóźnieniami zmienności — obalił je
+      dopiero ten sam test kierunkowości co poprzednio.
+    </p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Sygnał <span class="dim">(→ zmienność)</span></th>
+      <th class="num">w przód</th><th class="num">placebo</th><th>werdykt</th></tr></thead>
+    <tbody>
+      <tr><td>wolumen postów</td><td class="num">t = +2,35</td><td class="num">t = +3,27</td><td>wsteczny 1,7× silniejszy</td></tr>
+      <tr><td>upvote ratio</td><td class="num">t = +2,33</td><td class="num">t = +2,02</td><td>praktycznie symetryczny</td></tr>
+    </tbody></table></div>
+</section>
+
+<!-- 09 -->
+<section>
+  <div class="sec-head"><span class="sec-num">09</span>
     <h2 class="sec-title">Ograniczenia i dalsze kroki</h2></div>
   <div class="prose">
     <ul class="notes">
@@ -763,7 +845,41 @@
     el('line',{x1:mL,x2:mL,y1:mT,y2:mT+ph,stroke:css('--rule-strong'),'stroke-width':1},svg);
   }
 
-  function all(){volume();intraday();gap();doge();quint();}
+  function lag(){
+    const svg=document.getElementById('c-lag'); if(!svg) return; svg.innerHTML='';
+    const rows=[['dzień poprzedni',0.291,0.194,0.383],
+                ['dzień bieżący',0.184,0.082,0.282],
+                ['dzień następny',0.015,-0.088,0.118]];
+    const W=720,H=280,mL=150,mR=40,mT=24,mB=52,pw=W-mL-mR,ph=H-mT-mB;
+    const lo=-0.15,hi=0.45;
+    const X=v=>mL+(v-lo)/(hi-lo)*pw;
+    const rowH=ph/rows.length;
+    [-0.1,0,0.1,0.2,0.3,0.4].forEach(v=>{
+      el('line',{x1:X(v),x2:X(v),y1:mT,y2:mT+ph,stroke:css('--rule'),'stroke-width':1},svg);
+      const t=el('text',{x:X(v),y:H-mB+20,'text-anchor':'middle',fill:css('--ink-3'),'font-size':11},svg);
+      t.setAttribute('font-family',mono); t.textContent=v.toFixed(1).replace('.',',');});
+    el('line',{x1:X(0),x2:X(0),y1:mT,y2:mT+ph,stroke:css('--ink-2'),'stroke-width':1.5},svg);
+    rows.forEach((r,i)=>{
+      const cy=mT+rowH*i+rowH/2, bh=26;
+      const strong=i===0;
+      const x0=Math.min(X(r[1]),X(0)), w=Math.abs(X(r[1])-X(0));
+      const bar=el('rect',{x:x0,y:cy-bh/2,width:Math.max(w,2),height:bh,rx:3,
+        fill:strong?css('--series-2'):css('--series-1'),opacity:r[1]<0.05?.4:1},svg);
+      bar.addEventListener('mousemove',e=>show(e,`${r[0]}\nr = ${r[1].toFixed(3).replace('.',',')}  [${r[2].toFixed(3).replace('.',',')}; ${r[3].toFixed(3).replace('.',',')}]`));
+      bar.addEventListener('mouseleave',hide);
+      el('line',{x1:X(r[2]),x2:X(r[3]),y1:cy,y2:cy,stroke:css('--ink'),'stroke-width':1.5,opacity:.5},svg);
+      [r[2],r[3]].forEach(e2=>el('line',{x1:X(e2),x2:X(e2),y1:cy-5,y2:cy+5,
+        stroke:css('--ink'),'stroke-width':1.5,opacity:.5},svg));
+      const t=el('text',{x:mL-14,y:cy+4,'text-anchor':'end',fill:css('--ink-2'),
+        'font-size':13,'font-weight':strong?650:400},svg);
+      t.textContent=r[0];
+      const v=el('text',{x:X(r[3])+10,y:cy+4,fill:css('--ink-2'),'font-size':11.5},svg);
+      v.setAttribute('font-family',mono); v.textContent='r='+r[1].toFixed(3).replace('.',',');});
+    const xl=el('text',{x:mL+pw/2,y:H-8,'text-anchor':'middle',fill:css('--ink-2'),'font-size':12},svg);
+    xl.textContent='korelacja sentymentu ze zwrotem danego dnia';
+  }
+
+  function all(){volume();intraday();gap();doge();quint();lag();}
   all();
   window.addEventListener('resize',all);
   const mq=window.matchMedia('(prefers-color-scheme: dark)');
