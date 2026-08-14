@@ -107,8 +107,15 @@ def main():
         np.zeros((len(test_raw), 1)), test_target, LOOK_BACK)
     maj_pred = np.full(len(y_test_ref), maj_direction)
     majority_da = calculate_directional_accuracy(y_test_ref, maj_pred, is_stationary=True)
+    n_test = len(y_test_ref)
     print(f"Majority baseline on this split: {majority_da:.2f}% "
-          f"(always {'UP' if maj_direction > 0 else 'DOWN'}, n_test={len(y_test_ref)})\n")
+          f"(always {'UP' if maj_direction > 0 else 'DOWN'}, n_test={n_test})")
+    # The call is fixed from the TRAINING period and applied unchanged to the test
+    # period. That is what makes it a legitimate baseline - and also why it can
+    # land below 50%: the test period's own majority direction was the opposite one.
+    print(f"  (direction chosen on train up-share {up_share_train*100:.2f}%, "
+          f"applied to test whose up-share is {(y_test_ref > 0).mean()*100:.2f}% "
+          f"- hence a sub-50% baseline)\n")
 
     records = []
     for seed in range(n_seeds):
@@ -125,20 +132,43 @@ def main():
     print("\n" + "=" * 70)
     print(f"SUMMARY over {n_seeds} seeds (majority baseline = {majority_da:.2f}%)")
     print("=" * 70)
+    # Two families of tests are run here, and each needs its own correction:
+    #   family A - 4 tests of "variant vs majority baseline"  -> Bonferroni 0.05/4
+    #   family B - 6 pairwise tests between variants          -> Bonferroni 0.05/6
+    BONF_BASE = 0.05 / len(VARIANTS)
     summary = {}
     for name in VARIANTS:
         d = res[res['variant'] == name]['da'].values
         t_vs_maj, p_vs_maj = stats.ttest_1samp(d, majority_da)
+        mark = 'PASSES' if p_vs_maj < BONF_BASE else 'fails '
         print(f"  {name:10s} DA mean={d.mean():.2f}%  sd={d.std(ddof=1):.2f}  "
               f"min={d.min():.2f}  max={d.max():.2f}  "
-              f"| vs majority: t={t_vs_maj:+.2f} p={p_vs_maj:.4f}")
+              f"| vs majority: t={t_vs_maj:+.2f} p={p_vs_maj:.4f} "
+              f"[{mark} Bonferroni {BONF_BASE:.4f}]")
         summary[name] = {'mean_da': float(d.mean()), 'sd_da': float(d.std(ddof=1)),
                           'min_da': float(d.min()), 'max_da': float(d.max()),
-                          't_vs_majority': float(t_vs_maj), 'p_vs_majority': float(p_vs_maj)}
+                          't_vs_majority': float(t_vs_maj), 'p_vs_majority': float(p_vs_maj),
+                          'passes_bonferroni_vs_majority': bool(p_vs_maj < BONF_BASE)}
 
-    print("\nPairwise paired tests (same seed = same train/test split for both variants):")
+    # Beating the majority baseline (48.22%) and beating chance (50%) are different
+    # bars, and the sentiment variants sit BELOW 50% - so the binomial test promised
+    # in Chapter 2.8 has to be reported separately rather than folded into the above.
+    print(f"\nBinomial test against chance (p = 0.5), n = {n_test} test days:")
+    for name in VARIANTS:
+        d = res[res['variant'] == name]['da'].values
+        successes = int(round(d.mean() / 100 * n_test))
+        bt = stats.binomtest(successes, n_test, 0.5)
+        side = 'above' if d.mean() > 50 else 'below'
+        print(f"  {name:10s} mean DA {d.mean():.2f}% ({successes}/{n_test}, {side} chance)  "
+              f"p={bt.pvalue:.4f}  95% CI "
+              f"[{bt.proportion_ci().low*100:.1f}%, {bt.proportion_ci().high*100:.1f}%]")
+        summary[name]['binomial_p_vs_chance'] = float(bt.pvalue)
+
     pairs = [('price', '+finbert'), ('price', '+roberta'), ('price', '+both'),
              ('+finbert', '+roberta'), ('+finbert', '+both'), ('+roberta', '+both')]
+    BONF_PAIR = 0.05 / len(pairs)
+    print(f"\nPairwise paired tests (same seed = same train/test split for both "
+          f"variants), Bonferroni threshold {BONF_PAIR:.4f}:")
     pairwise = {}
     for a, b in pairs:
         da_a = res[res['variant'] == a].sort_values('seed')['da'].values
@@ -149,13 +179,17 @@ def main():
         except ValueError:
             w, pw = float('nan'), float('nan')
         diff = da_a.mean() - da_b.mean()
+        mark = 'PASSES' if p < BONF_PAIR else 'fails '
         print(f"  {a:10s} vs {b:10s}  mean diff={diff:+.3f} pp  "
-              f"paired-t: t={t:+.2f} p={p:.4f}   wilcoxon: p={pw:.4f}")
+              f"paired-t: t={t:+.2f} p={p:.4f}   wilcoxon: p={pw:.4f}  [{mark}]")
         pairwise[f'{a}_vs_{b}'] = {'mean_diff_pp': float(diff), 't': float(t), 'p_ttest': float(p),
-                                    'p_wilcoxon': float(pw) if pw == pw else None}
+                                    'p_wilcoxon': float(pw) if pw == pw else None,
+                                    'passes_bonferroni': bool(p < BONF_PAIR)}
 
     with open('results/ablation_threeway_summary.json', 'w') as f:
         json.dump({'n_seeds': n_seeds, 'majority_da': float(majority_da),
+                    'n_test_days': int(n_test),
+                    'bonferroni_vs_majority': BONF_BASE, 'bonferroni_pairwise': BONF_PAIR,
                     'variants': summary, 'pairwise': pairwise}, f, indent=2)
     print("\nSaved results/ablation_threeway_raw.csv and results/ablation_threeway_summary.json")
 

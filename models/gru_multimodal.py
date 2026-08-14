@@ -125,3 +125,7 @@ def run(ticker, results_dir, dataset_pkl='data/old_dataset/processed/full_datase
     save_path = os.path.join(results_dir, f"GRU_{experiment_name}_{ticker}.png")
     plt.savefig(save_path)
     plt.close()
+
+    return {'name': 'GRU Dual-Stream', 'dates': pd.DatetimeIndex(test_dates),
+            'y_true': y_test, 'y_pred': test_predict[:, 0],
+            'is_stationary': True, 'rmse': rmse}

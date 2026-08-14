@@ -53,3 +53,7 @@ def run(ticker, results_dir):
 
     save_path = os.path.join(results_dir, f"LSTM_{ticker}.png")
     plot_prediction(original_train_series, original_test_series, prediction_series, f"{ticker}: LSTM Price", save_path, "RMSE", rmse)
+
+    return {'name': 'LSTM (prices)', 'dates': test_dates,
+            'y_true': y_test_inv[0], 'y_pred': test_predict[:, 0],
+            'is_stationary': False, 'rmse': rmse}
