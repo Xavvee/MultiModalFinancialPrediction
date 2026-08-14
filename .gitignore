@@ -15,10 +15,6 @@ env/
 data/
 
 results/
-*.png
-*.jpg
-*.jpeg
-*.pdf
 *.log
 
 
