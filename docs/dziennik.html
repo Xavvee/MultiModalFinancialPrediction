@@ -165,7 +165,7 @@
   <div class="tile"><p class="k">Rozpiętość kwantylowa</p><p class="v ok">+30 bp</p><p class="s">monotonicznie, 5 grup</p></div>
   <div class="tile"><p class="k">Zgodność platform</p><p class="v">0,76</p><p class="s">Twitter kontra Reddit</p></div>
   <div class="tile"><p class="k">Kontrola: wzmianka vs wydźwięk</p><p class="v">+2,4 p.p.</p><p class="s">sentyment: r ≈ 0,09 (n.i.)</p></div>
-  <div class="tile"><p class="k">GRU: cena kontra +sentyment</p><p class="v">51,2% vs 50,2%</p><p class="s">20 ziaren, sparowany test</p></div>
+  <div class="tile"><p class="k">GRU wobec przypadku</p><p class="v">nieodróżnialne</p><p class="s">żaden wariant, test dwumianowy</p></div>
 </div>
 
 <!-- 01 -->
@@ -699,53 +699,172 @@
   </div>
   <div class="tbl-wrap"><table>
     <thead><tr><th>Wariant wejścia</th><th class="num">DA (śr. ± odch. std)</th>
-      <th class="num">vs baseline większościowy</th></tr></thead>
+      <th class="num">vs baseline (48,22%)</th><th class="num">vs przypadek (50%)</th></tr></thead>
     <tbody>
-      <tr class="hi"><td>sama cena</td><td class="num">51,19% ± 2,85</td><td class="num">t = +4,66, p = 0,0002</td></tr>
-      <tr><td>+ FinBERT</td><td class="num">49,85% ± 3,14</td><td class="num">t = +2,31, p = 0,032</td></tr>
-      <tr><td>+ RoBERTa</td><td class="num">49,42% ± 2,39</td><td class="num">t = +2,23, p = 0,038</td></tr>
-      <tr><td>+ oba strumienie</td><td class="num">50,15% ± 3,42</td><td class="num">t = +2,52, p = 0,021</td></tr>
+      <tr class="hi"><td>sama cena</td><td class="num">51,19% ± 2,85</td><td class="num">p = 0,0002 ✓</td><td class="num">p = 0,78</td></tr>
+      <tr><td>+ FinBERT</td><td class="num">49,85% ± 3,14</td><td class="num">p = 0,032 ✗</td><td class="num">p = 1,00</td></tr>
+      <tr><td>+ RoBERTa</td><td class="num">49,42% ± 2,39</td><td class="num">p = 0,038 ✗</td><td class="num">p = 0,89</td></tr>
+      <tr><td>+ oba strumienie</td><td class="num">50,15% ± 3,42</td><td class="num">p = 0,021 ✗</td><td class="num">p = 1,00</td></tr>
     </tbody></table></div>
   <div class="prose">
     <p>
       20 ziaren losowych, ten sam podział train/test dla każdego wariantu w danym
-      ziarnie (test sparowany), baseline większościowy liczony na dokładnie tym
-      oknie testowym co sieć — <strong>48,22%</strong>. Wszystkie cztery warianty
-      biją baseline; hipoteza „Lazy Predictor” (sieć zapada się do zgadywania
-      częstszego kierunku, gdy cena bliska błądzeniu losowemu) jest więc
-      <strong>odrzucona</strong> — sieć konsekwentnie robi coś ponad to. Ale żaden
-      wariant z sentymentem nie bije samej ceny; jedyna różnica parami zbliżona
-      do istotności (cena kontra +RoBERTa, p = 0,034) nie przechodzi korekty
-      Bonferroniego dla sześciu porównań (próg 0,0083). Sentyment nie dokłada
-      wartości predykcyjnej ponad cenę — ten sam wniosek co w resztach badania,
-      tym razem zmierzony na samej sieci, a nie tylko na regresji.
+      ziarnie (test sparowany). Baseline większościowy liczony na <em>dokładnie</em>
+      tym samym oknie testowym co sieć — <strong>48,22%</strong>; kierunek wybrany
+      na zbiorze treningowym (56,57% dni wzrostowych) i zastosowany bez zmian do
+      testowego (48,22%), stąd baseline poniżej 50%.
+    </p>
+    <p>
+      Dwie rodziny testów, każda z własną korektą Bonferroniego. Wobec baseline'u
+      (4 testy, próg 0,0125) <strong>przechodzi wyłącznie wariant bez sentymentu</strong>
+      — trzy warianty sentymentowe po korekcie już nie. Wobec czystego przypadku
+      (test dwumianowy, 197 dni) <strong>nie przechodzi żaden</strong>: wszystkie
+      przedziały ufności obejmują 50%. W porównaniach parami (6 testów, próg 0,0083)
+      nie przechodzi żadne — cena kontra +RoBERTa jest najbliżej (p = 0,034), ale
+      korekty nie wytrzymuje.
+    </p>
+    <p>
+      Wniosek jest więc mocniejszy, niż sugerowałaby sama tabela średnich:
+      dodanie sentymentu nie tylko nie pomaga, ale <strong>żaden wariant sieci nie
+      jest odróżnialny od rzutu monetą</strong> na tym oknie.
+    </p>
+    <h3>Bezpośredni test „Lazy Predictor”</h3>
+    <p>
+      Trafność bliska baseline'owi to dowód wyłącznie pośredni — może oznaczać
+      sieć zapadniętą do stałej (mechanizm Pintelasa i in.) albo sieć normalnie
+      zmienną, tyle że trafiającą losowo. Rozstrzyga to wariancja prognoz,
+      niezależnie od DA — zmierzona na obu zbiorach:
     </p>
   </div>
   <div class="tbl-wrap"><table>
-    <thead><tr><th>Okno testowe</th><th class="num">zmienność zwrotów</th>
-      <th class="num">DA (śr. ± odch. std, 10 powtórzeń)</th></tr></thead>
+    <thead><tr><th>Zbiór</th><th class="num">sama cena</th><th class="num">+ sentyment</th>
+      <th class="num">masa centralna</th></tr></thead>
     <tbody>
-      <tr><td>2021-06 – 2021-10</td><td class="num">0,0378</td><td class="num">45,4% ± 4,0</td></tr>
-      <tr><td>2021-10 – 2022-01</td><td class="num">0,0303</td><td class="num">48,8% ± 3,7</td></tr>
-      <tr><td>2022-01 – 2022-05</td><td class="num">0,0364</td><td class="num">49,0% ± 1,6</td></tr>
-      <tr><td>2022-05 – 2022-09</td><td class="num">0,0365</td><td class="num">49,5% ± 6,1</td></tr>
-      <tr class="hi"><td>2022-09 – 2023-01</td><td class="num">0,0255</td><td class="num">54,4% ± 1,4</td></tr>
+      <tr><td>2016–19</td><td class="num">0,40</td><td class="num">0,50</td><td class="num">4–17%</td></tr>
+      <tr><td>2021–23</td><td class="num">1,13</td><td class="num">1,33</td><td class="num">3–4%</td></tr>
+    </tbody></table></div>
+  <div class="prose">
+    <p>
+      Wartości to <code>sd(prognoza) / sd(rzeczywistość)</code>; zapadnięcie do
+      stałej dałoby ułamek rzędu wielkości mniejszy od 1 i masę centralną bliską
+      100% zamiast ~10% oczekiwanych dla prognozy normalnie zmiennej.
+      <strong>Hipoteza zapadnięcia jest odrzucona na obu zbiorach</strong>, przy
+      czym w przeciwnych kierunkach: na 2016–19 sieć jest umiarkowanie zachowawcza
+      (około połowy amplitudy rzeczywistych zwrotów), a na 2021–23 <em>nadmiernie</em>
+      rozrzutna — prognozuje wahania większe niż faktyczne.
+    </p>
+    <p>
+      Nie ma tu więc leniwego predyktora; jest prognoza, która po prostu nie
+      trafia. Rozróżnienie ma znaczenie dla wniosku pracy: sygnał jest
+      <em>nieobecny</em>, a nie <em>stłumiony przez funkcję straty</em> — czego
+      sama trafność kierunkowa nie potrafiłaby rozstrzygnąć.
+    </p>
+  </div>
+  <div class="prose">
+    <h3>Stabilność walidacji kroczącej</h3>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Okno testowe</th><th class="num">dni treningowych</th>
+      <th class="num">zmienność</th><th class="num">DA (śr. ± odch. std, 10 powtórzeń)</th></tr></thead>
+    <tbody>
+      <tr><td>2021-06 – 2021-10</td><td class="num">115</td><td class="num">0,0378</td><td class="num">45,4% ± 4,0</td></tr>
+      <tr><td>2021-10 – 2022-01</td><td class="num">230</td><td class="num">0,0303</td><td class="num">48,8% ± 3,7</td></tr>
+      <tr><td>2022-01 – 2022-05</td><td class="num">345</td><td class="num">0,0364</td><td class="num">49,0% ± 1,6</td></tr>
+      <tr><td>2022-05 – 2022-09</td><td class="num">460</td><td class="num">0,0365</td><td class="num">49,5% ± 6,1</td></tr>
+      <tr class="hi"><td>2022-09 – 2023-01</td><td class="num">575</td><td class="num">0,0255</td><td class="num">54,4% ± 1,4</td></tr>
     </tbody></table></div>
   <div class="prose">
     <p>
       Walidacja krocząca (<code>TimeSeriesSplit</code>, 5 okien) dzieli dane
       deterministycznie — te same okna w każdym powtórzeniu, zmienia się tylko
       losowa inicjalizacja wag. Pojedynczy przebieg potrafi trafić w skrajny
-      koniec tego rozrzutu: okno 4 ma odchylenie między powtórzeniami aż 6,1 p.p.,
-      więc jeden zaobserwowany wynik 59,6% na tym oknie jest w większości szumem
-      inicjalizacji, nie własnością danych. Mimo to <strong>wynik zagregowany
-      po wszystkich pięciu oknach jest stabilny</strong>: 49,4% ± 1,9 p.p. między
-      powtórzeniami — błędy okien częściowo się znoszą. Korelacja między
-      zmiennością okna a jego średnim DA wynosi <strong>r = −0,83</strong>
-      (5 okien, ostrożnie z uogólnianiem): okna spokojniejsze dają wyższą
-      trafność kierunkową, burzliwe — niższą. To zbiór 2021–23, niezwiązany
-      z odcięciem stagnacji 2014–2016 stosowanym na zbiorze 2016–19 gdzie
-      indziej w tym badaniu — dwa różne zbiory, dwa różne okresy.
+      koniec rozrzutu: okno 4 ma odchylenie między powtórzeniami aż 6,1 p.p.,
+      więc pojedynczy zaobserwowany wynik 59,6% na tym oknie jest w większości
+      szumem inicjalizacji, nie własnością danych. Mimo to <strong>wynik
+      zagregowany po wszystkich pięciu oknach jest stabilny</strong>:
+      49,4% ± 1,9 p.p. między powtórzeniami — błędy okien częściowo się znoszą.
+      Do pracy idzie liczba zagregowana z tabelą per-okno, nigdy pojedyncze okno
+      z pojedynczego przebiegu.
+    </p>
+    <h3>Czego <em>nie</em> tłumaczy wzorzec między oknami</h3>
+    <p>
+      DA rośnie monotonicznie z numerem okna, co kusi do interpretacji
+      ekonomicznej. Trzy kandydujące wyjaśnienia zmierzone razem:
+    </p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Kandydat</th><th class="num">korelacja z DA</th><th class="num">p</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>rozmiar zbioru treningowego</td><td class="num">r = +0,918</td><td class="num">0,028</td></tr>
+      <tr><td>zmienność okna</td><td class="num">r = −0,831</td><td class="num">0,081</td></tr>
+      <tr><td>udział dni wzrostowych</td><td class="num">r = −0,766</td><td class="num">0,131</td></tr>
+    </tbody></table></div>
+  <div class="prose">
+    <p>
+      <code>TimeSeriesSplit</code> stosuje <strong>rozszerzające się</strong> okno
+      treningowe: okno 5 uczy się na 575 dniach, okno 1 na 115. To banalne
+      wyjaśnienie — więcej danych, lepszy model — <strong>jako jedyne osiąga
+      istotność</strong>, a zmienność jest z nim splątana (r = −0,556). Przy pięciu
+      punktach żadnej z tych zmiennych nie da się przypisać efektu czysto.
+    </p>
+    <p>
+      Wcześniejsza wersja tego dziennika podawała tu interpretację zmiennościową
+      („spokojniejsze okna → wyższa trafność”). <strong>Została wycofana</strong>:
+      po dołożeniu rozmiaru zbioru treningowego okazuje się gorzej umocowana niż
+      wyjaśnienie trywialne. Zostaje odnotowana jako przykład tego, jak łatwo
+      przy n = 5 dopasować narrację ekonomiczną do splątanych zmiennych.
+    </p>
+    <p class="dim">
+      Uwaga porządkowa: to zbiór 2021–23. Odcięcie stagnacji 2014–2016 dotyczy
+      zbioru 2016–19 używanego w ablacji powyżej — dwa różne zbiory, dwa różne
+      okresy, nie należy ich łączyć. Wcześniejsze liczby per-okno z pojedynczego
+      przebiegu (m.in. 40,4%) są zastąpione tabelą powyżej; różnica bierze się
+      z uśrednienia po ziarnach, nie ze zmiany definicji metryki — ta ostatnia
+      nie dotyka tego modelu, bo jego prognozy są zawsze ±1, nigdy zerowe.
+    </p>
+    <h3>Benchmark na wspólnym oknie</h3>
+    <p>
+      Każdy model wyprowadzał wcześniej własne okno testowe: modele cenowe
+      pobierają notowania z Yahoo, GRU czyta zbiór sentymentu (kończący się
+      wcześniej), a warianty LSTM tracą własne okno wsteczne. Porównanie
+      „GRU 54,31% wobec baseline'u 49,77%” zestawiało więc 197 dni z 213 i
+      <strong>nie było poprawne</strong>. Poniżej wszystkie modele policzone na
+      przecięciu dat — jednym oknie wspólnym dla całej tabeli.
+    </p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Model</th><th class="num">DA</th><th class="num">DA (zera = błąd)</th>
+      <th class="num">pokrycie</th></tr></thead>
+    <tbody>
+      <tr><td>Random Walk</td><td class="num">—</td><td class="num">0,00%</td><td class="num">0%</td></tr>
+      <tr><td>Baseline większościowy</td><td class="num">44,83%</td><td class="num">44,83%</td><td class="num">100%</td></tr>
+      <tr><td>Baseline persystencji</td><td class="num">49,66%</td><td class="num">49,66%</td><td class="num">100%</td></tr>
+      <tr><td>ARIMA (ceny)</td><td class="num">50,34%</td><td class="num">50,34%</td><td class="num">100%</td></tr>
+      <tr><td>ARIMA (zwroty)</td><td class="num">42,76%</td><td class="num">42,76%</td><td class="num">100%</td></tr>
+      <tr><td>LSTM (ceny)</td><td class="num">59,31%</td><td class="num">59,31%</td><td class="num">100%</td></tr>
+      <tr><td>LSTM (zwroty)</td><td class="num">43,45%</td><td class="num">43,45%</td><td class="num">100%</td></tr>
+      <tr class="hi"><td>GRU Dual-Stream</td><td class="num">54,48%</td><td class="num">54,48%</td><td class="num">100%</td></tr>
+    </tbody></table></div>
+  <div class="prose">
+    <p>
+      BTC-USD, wspólne okno <strong>145 dni</strong> (2019-07-02 – 2019-11-23).
+      Wyrównanie kosztuje próbę: przecięcie jest tak duże, jak pozwala model
+      o najdłuższym oknie wstecznym. Przy n = 145 margines 95% na pojedynczą
+      trafność wynosi <strong>±8,1 p.p.</strong>, więc <strong>różnice mniejsze
+      niż ~16 p.p. między wierszami nie są rozstrzygalne</strong> — cała tabela
+      mieści się praktycznie w jednym przedziale ufności.
+    </p>
+    <p>
+      Dwie kolumny trafności pokazują koszt definicji metryki. Okazuje się on
+      węższy, niż można było się obawiać: <strong>obie kolumny różnią się wyłącznie
+      dla błądzenia losowego</strong>, bo każdy pozostały model ma pokrycie 100%.
+      Naiwna prognoza „jutro tyle co dziś” implikuje zmianę dokładnie zerową
+      każdego dnia, więc nie stawia żadnej prognozy kierunkowej — jej DA nie
+      istnieje (kolumna pierwsza), a przy liczeniu zer jako błędów wynosi
+      z definicji 0% (kolumna druga). Żadna z tych liczb nie jest oceną jakości.
+      Dlatego dołożono <strong>baseline persystencji</strong> („ten sam kierunek
+      co wczoraj”), który zachowuje tę samą przesłankę informacyjną, ale stawia
+      prognozę w 100% dni i jest mierzalny.
     </p>
   </div>
 </section>
@@ -778,7 +897,10 @@
   <p>
     <strong>Nota metodologiczna.</strong> Trafność kierunkowa liczona poza próbą
     w walidacji kroczącej; skalery dopasowywane wyłącznie na danych treningowych
-    w obrębie okna. Sentyment: FinBERT (ProsusAI) i Twitter-RoBERTa (CardiffNLP),
+    w obrębie okna. Prognozy implikujące zerową zmianę są wyłączane z mianownika
+    trafności i raportowane osobno jako pokrycie; wariant z zerami liczonymi jako
+    błąd podawany jest obok. Modele w tabeli benchmarku porównywane wyłącznie na
+    przecięciu ich okien testowych. Sentyment: FinBERT (ProsusAI) i Twitter-RoBERTa (CardiffNLP),
     wynik jako różnica prawdopodobieństw klas skrajnych; etykiety obu modeli
     zweryfikowane wobec ich konfiguracji. Ceny godzinowe i minutowe: Binance.
     Zbiór akcji: Xu &amp; Cohen (ACL 2018).
