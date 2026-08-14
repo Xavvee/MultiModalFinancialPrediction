@@ -15,7 +15,9 @@ from scipy import stats
 
 from analysis.common import ci, mde, ALPHA
 
-# Observed nulls worth converting into exclusions: (label, n, r)
+# Observed nulls worth converting into exclusions: (label, n, r).
+# These are RECORDED measurements, kept as the historical record; the
+# modules that produced them recompute from data on every run.
 OBSERVED = [
     ('2016-19 sentiment -> next-day return', 942, 0.0117),
     ('2016-19 roberta -> next-day return', 942, 0.0534),
@@ -29,7 +31,9 @@ OBSERVED = [
 SAME_DAY = [
     ('2016-19 same-day', 942, 0.2463),
     ('2021-23 same-day', 222, 0.4164),
-    ('2016-19 dense days, same-day', 254, 0.3601),
+    # Bucketed 1000-100k tweets/day, not a >=1000 threshold - verification.py
+    # reports 0.379 for the threshold version. Different cuts, both correct.
+    ('2016-19 bucket 1k-100k tweets, same-day', 254, 0.3601),
 ]
 
 

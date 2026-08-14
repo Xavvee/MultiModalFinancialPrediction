@@ -336,6 +336,41 @@
     </p>
   </div>
 
+  <h3>Dwa zarzuty, które trzeba było odeprzeć</h3>
+  <div class="prose">
+    <p>
+      <strong>Wyniki kwartalne.</strong> Raporty publikowane są po zamknięciu sesji
+      i wywołują największe luki w roku. Gdyby komentarz narastał wokół nich, cały
+      efekt mógłby być jedynie zastępnikiem sezonu raportowania.
+      <strong>Handel przedsesyjny.</strong> Amerykańskie akcje handlują się przed
+      oficjalnym otwarciem — gdyby efekt pochodził wyłącznie z wpisów tuż przed
+      dzwonkiem, mógłby odzwierciedlać ruchy niewidoczne w danych dziennych.
+    </p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Test</th><th class="num">współczynnik</th><th class="num">t</th><th>wynik</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>pełna próba</td><td class="num">+0,001475</td><td class="num">+6,20</td><td class="ok">—</td></tr>
+      <tr><td>poza sezonem wyników</td><td class="num">+0,000531</td><td class="num">+2,26</td><td>utrzymany, słabszy</td></tr>
+      <tr><td>bez 10% największych luk</td><td class="num">+0,000243</td><td class="num">+2,34</td><td>utrzymany, słabszy</td></tr>
+      <tr class="hi"><td>okno wczesne <span class="dim">(tuż po zamknięciu)</span></td><td class="num">+0,001031</td><td class="num">+3,64</td><td class="ok">utrzymany</td></tr>
+      <tr><td>okno późne <span class="dim">(przed otwarciem)</span></td><td class="num">+0,003546</td><td class="num">+5,52</td><td>utrzymany</td></tr>
+    </tbody></table></div>
+  <div class="prose">
+    <p>
+      Efekt przeżywa oba wykluczenia, ale wymaga doprecyzowania: <strong>jest silnie
+      skoncentrowany wokół publikacji wyników</strong> — poza sezonem współczynnik
+      spada do 36% wartości pełnej próby. To sensowne, bo wtedy jest jakakolwiek
+      informacja do przekazania.
+    </p>
+    <p>
+      Rozstrzygające jest okno wczesne. Tuż po zamknięciu obrót przedsesyjny jeszcze
+      nie ruszył, więc sentyment pisany wtedy <em>nie ma na co reagować</em> — a mimo
+      to przewiduje lukę (t = +3,64). Okno późne jest silniejsze, co sugeruje, że
+      część całkowitego efektu rzeczywiście odzwierciedla obrót przedsesyjny, ale nie całość.
+    </p>
+  </div>
+
   <h3>Ujęcie kwantylowe</h3>
   <div class="prose">
     <p>
@@ -519,6 +554,42 @@
       Informacja nie leży na osi pozytyw–negatyw. Leży w <strong>samym fakcie
       wzmianki</strong>. To wyrazistość i uwaga, nie polaryzacja — a więc wielkość,
       której ten potok z założenia nie mierzy.
+    </p>
+
+    <h3>Dlaczego wzmianka podnosi kurs niezależnie od wydźwięku</h3>
+    <p>
+      Mechanizm opisali Barber i Odean (2008). Inwestor detaliczny może <em>kupić
+      cokolwiek</em>, co przyciągnie jego uwagę, ale <em>sprzedać tylko to, co już
+      posiada</em>. Uwaga wytwarza więc przewagę presji kupna niezależnie od tonu
+      wypowiedzi — kierunek wynika z asymetrii samego mechanizmu, nie z treści.
+      Da, Engelberg i Gao (2011) pokazali z kolei, że uwagę da się mierzyć
+      bez analizy treści, samym wolumenem zapytań.
+    </p>
+    <p>
+      Teoria przewiduje coś jeszcze: kupno bez podstawy fundamentalnej powinno
+      zostać oddane. Dane to potwierdzają.
+    </p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Horyzont po wpisie</th><th class="num">nadwyżka nad kontrolą</th><th class="num">p</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>15 minut</td><td class="num ok">+2,38%</td><td class="num">&lt;0,0001</td></tr>
+      <tr><td>1 godzina</td><td class="num">+1,71%</td><td class="num">0,001</td></tr>
+      <tr><td>4 godziny</td><td class="num">+0,93%</td><td class="num">0,18</td></tr>
+      <tr><td>1 dzień</td><td class="num">+1,07%</td><td class="num">0,60</td></tr>
+      <tr class="hi"><td>1 tydzień</td><td class="num">−10,32%</td><td class="num">0,016</td></tr>
+    </tbody></table></div>
+  <div class="prose">
+    <p>
+      Ostry wzrost, zanik do nieistotności w cztery godziny, a po tygodniu
+      <strong>istotnie ujemna nadwyżka</strong> — pełne odwrócenie. To sygnatura
+      kupna napędzanego uwagą, nie wyceniania informacji.
+    </p>
+    <p class="dim" style="font-size:14px">
+      Zastrzeżenie: przy 101 zdarzeniach w jednym roku tygodniowe okna mocno na
+      siebie zachodzą, więc zdarzenia nie są niezależne i długi horyzont jest
+      obarczony nadmierną pewnością. Ciężar dowodu spoczywa na krótkich
+      horyzontach, gdzie okna niemal się nie nakładają.
     </p>
     <p>
       Wniosek jest mocniejszy niż „metoda działa” albo „metoda nie działa”. Aparat

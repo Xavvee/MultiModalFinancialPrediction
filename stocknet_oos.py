@@ -77,8 +77,10 @@ def build():
     d['log_n'] = np.log(d['n'])
     d['ticker'] = d['ticker'].astype(str)
     d = d.dropna(subset=['gap', 'sent'] + CONTROLS).reset_index(drop=True)
-    # Standardise using training statistics only where it matters; here the
-    # scale is global and does not depend on the outcome, so it cannot leak.
+    # Standardised on the full sample. This touches only the predictor's scale,
+    # never the outcome, and a linear rescaling of a regressor leaves both the
+    # t-statistic and the out-of-sample correlation unchanged - so it cannot
+    # flatter the results. Noted explicitly rather than left for a reader to spot.
     d['sent_z'] = (d['sent'] - d['sent'].mean()) / d['sent'].std()
     return d
 

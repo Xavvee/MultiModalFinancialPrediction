@@ -52,13 +52,18 @@ for m in ['finbert', 'roberta']:
 d = d.dropna(subset=['next_ret', 'prev_ret', 'ret', 'lag1', 'lag2', 'lag3', 'lag6'])
 hour_fe = pd.get_dummies(d.index.hour, prefix='h', drop_first=True).set_index(d.index).astype(float)
 CTRL = ['ret', 'lag1', 'lag2', 'lag3', 'lag6', 'log_n', 'down']
+# lag1 IS the previous hour's return, which is also the placebo's target. Leaving
+# it in the control set would put the dependent variable on both sides of the
+# regression and produce a meaningless coefficient, so the placebo drops it.
+PLACEBO_CTRL = [c for c in CTRL if c != 'lag1']
 
 print(f'n = {len(d):,} hours   |   down-hours: {int(d["down"].sum()):,} '
       f'({d["down"].mean()*100:.1f}%)\n')
 
 
-def run(label, target, keys, extra=()):
-    X = d[list(keys) + CTRL + list(extra)].join(hour_fe)
+def run(label, target, keys, extra=(), controls=None):
+    ctrl = CTRL if controls is None else controls
+    X = d[list(keys) + list(ctrl) + list(extra)].join(hour_fe)
     X = sm.add_constant(X)
     y = d[target]
     ok = X.notna().all(axis=1) & y.notna()
@@ -76,7 +81,8 @@ print('=== FEEDBACK: does sentiment matter more while price is falling? ===')
 for m in ['finbert', 'roberta']:
     print(f'  -- {m} --')
     run('forward: next-hour return', 'next_ret', [f'{m}_z', f'{m}_down'])
-    run('PLACEBO: previous-hour return', 'prev_ret', [f'{m}_z', f'{m}_down'])
+    run('PLACEBO: previous-hour return', 'prev_ret', [f'{m}_z', f'{m}_down'],
+        controls=PLACEBO_CTRL)
 
 print('\n=== Same question restricted to sharp falls (worst 20% of hours) ===')
 cut = d['ret'].quantile(0.20)
