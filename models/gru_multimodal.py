@@ -172,3 +172,9 @@ def run(ticker, results_dir, dataset_pkl='data/new_dataset/processed/full_datase
     save_path = os.path.join(results_dir, f"GRU_{experiment_name}_{ticker}.png")
     plt.savefig(save_path)
     plt.close()
+
+    # This variant is a classifier: its output is a direction, not a return
+    # magnitude, so there is no RMSE to report. oof_* were sorted by date above.
+    return {'name': 'GRU Dual-Stream (walk-fwd)', 'dates': pd.DatetimeIndex(oof_dates),
+            'y_true': oof_returns, 'y_pred': oof_direction,
+            'is_stationary': True, 'rmse': None}

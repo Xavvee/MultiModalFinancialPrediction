@@ -49,3 +49,7 @@ def run(ticker, results_dir):
     save_path = os.path.join(results_dir, f"ARIMA_Returns_{ticker}.png")
     plt.savefig(save_path)
     plt.close()
+
+    return {'name': 'ARIMA (returns)', 'dates': test.index,
+            'y_true': test.values, 'y_pred': predictions_series.values,
+            'is_stationary': True, 'rmse': rmse}

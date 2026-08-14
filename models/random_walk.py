@@ -16,3 +16,7 @@ def run(ticker, results_dir):
     
     save_path = os.path.join(results_dir, f"RW_{ticker}.png")
     plot_prediction(train, test, predictions, f"{ticker}: Random Walk", save_path, "RMSE", rmse)
+
+    return {'name': 'Random Walk', 'dates': test.index,
+            'y_true': test.values, 'y_pred': predictions.values,
+            'is_stationary': False, 'rmse': rmse}

@@ -4,19 +4,34 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-def get_data(ticker="BTC-USD", start="2020-01-01", end="2026-03-03"):
+# Matched to the span of the sentiment corpus (full_dataset_whales_2021_23.pkl,
+# 2021-02-05 .. 2023-01-09). The price-only models must be scored on the same
+# period as the sentiment model, or the benchmark table compares disjoint eras:
+# with the previous 2020-2026 default the 80/20 split put the price models in
+# 2024-26 while the GRU was validating on 2021-23, and the two never overlapped.
+def get_data(ticker="BTC-USD", start="2021-02-01", end="2023-01-10"):
     print(f"--- Loading data for {ticker} ---")
     data = yf.download(ticker, start=start, end=end)
     if isinstance(data.columns, pd.MultiIndex):
         data.columns = data.columns.get_level_values(0)
     return data['Close']
 
-def calculate_directional_accuracy(y_true, y_pred, is_stationary=False):
-    """Percentage of correct directional calls.
+def _directions(y_true, y_pred, is_stationary):
+    """Derives (true direction, predicted direction) as sign arrays.
 
     is_stationary=False -> PRICE LEVELS: compare the predicted price against the
                            previous actual price to derive an implied direction
     is_stationary=True  -> RETURNS: compare signs directly
+    """
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
+    if is_stationary:
+        return np.sign(y_true), np.sign(y_pred)
+    return np.sign(y_true[1:] - y_true[:-1]), np.sign(y_pred[1:] - y_true[:-1])
+
+
+def calculate_directional_accuracy(y_true, y_pred, is_stationary=False):
+    """Percentage of correct directional calls, over the days a call was made.
 
     Predictions implying no change are EXCLUDED from the denominator rather than
     counted as wrong. This matters: a naive persistence forecast predicts exactly
@@ -24,21 +39,32 @@ def calculate_directional_accuracy(y_true, y_pred, is_stationary=False):
     Scoring those as misses reports 0% accuracy for a model that in truth makes
     no directional call at all - which reads as catastrophic failure instead of
     abstention, and hides the fact that this metric cannot evaluate such a model.
+
+    The exclusion is not free: it makes the denominator model-dependent, so this
+    number is only comparable across models when read together with
+    directional_coverage(). Report both, or report
+    directional_accuracy_strict() alongside.
     """
-    y_true = np.asarray(y_true, dtype=float)
-    y_pred = np.asarray(y_pred, dtype=float)
-
-    if is_stationary:
-        true_dir = np.sign(y_true)
-        pred_dir = np.sign(y_pred)
-    else:
-        true_dir = np.sign(y_true[1:] - y_true[:-1])
-        pred_dir = np.sign(y_pred[1:] - y_true[:-1])
-
+    true_dir, pred_dir = _directions(y_true, y_pred, is_stationary)
     called = pred_dir != 0
     if called.sum() == 0:
         return float('nan')          # the model never takes a side
     return float((true_dir[called] == pred_dir[called]).mean() * 100)
+
+
+def directional_accuracy_strict(y_true, y_pred, is_stationary=False):
+    """Directional accuracy with no-change predictions counted as WRONG.
+
+    The conservative reading: a model that declines to take a side gets no
+    credit for the days it sat out. Keeps the denominator identical for every
+    model - so this column is directly comparable across a benchmark table -
+    and it penalises the 'lazy predictor' collapse toward a near-constant
+    forecast, which the permissive definition above hides.
+    """
+    true_dir, pred_dir = _directions(y_true, y_pred, is_stationary)
+    if len(true_dir) == 0:
+        return float('nan')
+    return float((true_dir == pred_dir).mean() * 100)
 
 
 def directional_coverage(y_true, y_pred, is_stationary=False):
@@ -47,12 +73,9 @@ def directional_coverage(y_true, y_pred, is_stationary=False):
     Reported alongside accuracy so an abstaining model cannot masquerade as an
     accurate one, or as a failing one.
     """
-    y_true = np.asarray(y_true, dtype=float)
-    y_pred = np.asarray(y_pred, dtype=float)
-    if is_stationary:
-        pred_dir = np.sign(y_pred)
-    else:
-        pred_dir = np.sign(y_pred[1:] - y_true[:-1])
+    _, pred_dir = _directions(y_true, y_pred, is_stationary)
+    if len(pred_dir) == 0:
+        return float('nan')
     return float((pred_dir != 0).mean() * 100)
 
 def plot_prediction(train, test, prediction, title, filename, metric_name, metric_value):

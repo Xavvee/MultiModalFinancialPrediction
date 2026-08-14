@@ -14,6 +14,7 @@ import sys
 import json
 import numpy as np
 import pandas as pd
+from scipy import stats
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import TimeSeriesSplit
 from tensorflow.keras.callbacks import EarlyStopping
@@ -49,6 +50,7 @@ def main():
     # (deterministic) split.
     fold_info = []
     for fold, (train_pos, test_pos) in enumerate(folds, start=1):
+        train_idx = valid_targets[train_pos]
         test_idx = valid_targets[test_pos]
         fold_dates = dates[test_idx]
         fold_returns = target_returns[test_idx]
@@ -57,11 +59,16 @@ def main():
             'start': str(pd.Timestamp(fold_dates.min()).date()),
             'end': str(pd.Timestamp(fold_dates.max()).date()),
             'n_days': int(len(test_idx)),
+            # TimeSeriesSplit uses an EXPANDING training window, so this grows
+            # fold over fold. It is a candidate explanation for any DA trend and
+            # is entangled with the others - hence reported alongside them below.
+            'n_train': int(len(train_idx)),
             'volatility_std': float(np.std(fold_returns)),
             'up_share': float((fold_returns > 0).mean() * 100),
         })
         print(f"Fold {fold}: {fold_info[-1]['start']} -> {fold_info[-1]['end']} "
-              f"(n={fold_info[-1]['n_days']}, vol={fold_info[-1]['volatility_std']:.4f}, "
+              f"(n_test={fold_info[-1]['n_days']}, n_train={fold_info[-1]['n_train']}, "
+              f"vol={fold_info[-1]['volatility_std']:.4f}, "
               f"up-days={fold_info[-1]['up_share']:.1f}%)")
 
     da_matrix = np.full((n_repeats, N_FOLDS), np.nan)
@@ -107,14 +114,30 @@ def main():
         info['da_mean'] = float(np.nanmean(col))
         info['da_sd'] = float(np.nanstd(col, ddof=1))
         print(f"  Fold {info['fold']} [{info['start']} -> {info['end']}]  "
-              f"vol={info['volatility_std']:.4f}  "
+              f"n_train={info['n_train']:4d}  vol={info['volatility_std']:.4f}  "
               f"DA mean={info['da_mean']:.2f}%  sd={info['da_sd']:.2f}  "
               f"(single-run range seen: {col.min():.1f}-{col.max():.1f})")
 
-    vols = [f['volatility_std'] for f in fold_info]
+    # Three candidate explanations for the fold-to-fold DA pattern, all reported
+    # together because with 5 folds they cannot be separated: the expanding
+    # training window, the fold's volatility, and its class balance move together.
+    # Reporting only the one that fits the preferred story would be cherry-picking.
     means = [f['da_mean'] for f in fold_info]
-    corr = float(np.corrcoef(vols, means)[0, 1]) if len(vols) > 2 else float('nan')
-    print(f"\n  Correlation across folds: volatility vs mean DA  r={corr:+.3f}  (n={len(vols)} folds)")
+    candidates = {
+        'training-set size': [f['n_train'] for f in fold_info],
+        'volatility': [f['volatility_std'] for f in fold_info],
+        'up-day share': [f['up_share'] for f in fold_info],
+    }
+    print(f"\n  Candidate explanations for the fold pattern (n={len(means)} folds):")
+    correlations = {}
+    for label, x in candidates.items():
+        r, p = stats.pearsonr(x, means)
+        flag = ' <-- only one reaching p<0.05' if p < 0.05 else ''
+        print(f"    {label:20s} vs mean DA:  r={r:+.3f}  p={p:.3f}{flag}")
+        correlations[label] = {'r': float(r), 'p': float(p)}
+    r_conf, _ = stats.pearsonr(candidates['training-set size'], candidates['volatility'])
+    print(f"    (training-set size vs volatility: r={r_conf:+.3f} - they are entangled,")
+    print(f"     so neither can be credited cleanly at this sample size)")
 
     overall_mean = float(np.nanmean(da_matrix))
     overall_sd_across_reps = float(np.nanstd(np.nanmean(da_matrix, axis=1), ddof=1))
@@ -123,7 +146,8 @@ def main():
 
     with open('results/gru_stability_summary.json', 'w') as f:
         json.dump({'n_repeats': n_repeats, 'folds': fold_info,
-                    'volatility_vs_da_corr': corr,
+                    'fold_pattern_correlations': correlations,
+                    'trainsize_volatility_collinearity': float(r_conf),
                     'grand_mean_da': overall_mean,
                     'overall_da_repeat_sd': overall_sd_across_reps}, f, indent=2)
     np.save('results/gru_stability_da_matrix.npy', da_matrix)

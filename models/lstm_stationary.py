@@ -70,3 +70,7 @@ def run(ticker, results_dir):
     save_path = os.path.join(results_dir, f"LSTM_Returns_{ticker}.png")
     plt.savefig(save_path)
     plt.close()
+
+    return {'name': 'LSTM (returns)', 'dates': test_dates,
+            'y_true': y_test_inv[0], 'y_pred': test_predict_inv[:, 0],
+            'is_stationary': True, 'rmse': rmse}

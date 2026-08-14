@@ -32,3 +32,7 @@ def run(ticker, results_dir):
 
     save_path = os.path.join(results_dir, f"ARIMA_{ticker}.png")
     plot_prediction(train, test, predictions_series, f"{ticker}: ARIMA Rolling", save_path, "RMSE", rmse)
+
+    return {'name': 'ARIMA (prices)', 'dates': test.index,
+            'y_true': test.values, 'y_pred': predictions_series.values,
+            'is_stationary': False, 'rmse': rmse}
