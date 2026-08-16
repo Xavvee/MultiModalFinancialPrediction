@@ -279,54 +279,80 @@ def fig04_oos():
 
 # --------------------------------------------------------------------------- #
 def fig05_dogecoin():
-    """Attention effect: the mention moves price, then the move reverses."""
+    """Attention effect: both groups shown, with a placebo window before the tweet."""
     from dogecoin_control import load, window_return
     tw, price = load()
-    windows = [5, 15, 30, 60, 240, 1440, 10080]
-    labels = ['5 min', '15 min', '30 min', '1 godz.', '4 godz.', '1 dzień', '1 tydzień']
-    diff, sig = [], []
-    for w in windows:
-        col = [window_return(price, t, w, True) for t in tw['ts']]
-        tw['tmp'] = col
+    # Negative window = BEFORE the tweet. That placebo horizon is what separates
+    # "the tweet moved the price" from "he tweeted because it was already moving",
+    # so it belongs in the figure rather than only in the console output.
+    spec = [(-60, 'placebo\n(−60 min)'), (5, '5 min'), (15, '15 min'), (30, '30 min'),
+            (60, '1 godz.'), (240, '4 godz.'), (1440, '1 dzień'), (10080, '1 tydzień')]
+    doge, ctrl, sig = [], [], []
+    for w, _ in spec:
+        tw['tmp'] = [window_return(price, t, abs(w), w > 0) for t in tw['ts']]
         a = tw.loc[tw['is_doge'], 'tmp'].dropna()
         b = tw.loc[~tw['is_doge'], 'tmp'].dropna()
-        t, p = stats.ttest_ind(a, b, equal_var=False)
-        diff.append((a.mean() - b.mean()) * 100)
+        _, p = stats.ttest_ind(a, b, equal_var=False)
+        doge.append(a.mean() * 100)
+        ctrl.append(b.mean() * 100)
         sig.append(p < 0.05)
 
-    # Two panels with separate scales. On one axis the -10% week swamps the
-    # +2% first hour, drawing the eye to the weakest evidence (overlapping
-    # windows, 101 events) and hiding the strongest.
-    fig, (axL, axR) = plt.subplots(1, 2, figsize=(7.6, 3.9),
-                                   gridspec_kw={'width_ratios': [2.4, 1]})
-    split = 5      # first five horizons are minutes-to-hours
-    for ax, idx, title in [(axL, range(split), 'natychmiastowa reakcja'),
-                           (axR, range(split, len(windows)), 'horyzont dłuższy')]:
+    # Both groups are drawn, not their difference. The difference alone hides the
+    # week-horizon story: the DOGE group does not fall (+7.0%), the control runs
+    # away from it (+17.3%). Plotting only the gap would read as a crash.
+    #
+    # Two panels because the week-horizon control (+17%) would otherwise flatten
+    # the ~2% first-hour bars that carry the actual finding.
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(8.6, 4.3),
+                                   gridspec_kw={'width_ratios': [3, 1]})
+    split = 6
+    W = 0.38
+    for ax, idx in [(axL, range(split)), (axR, range(split, len(spec)))]:
         idx = list(idx)
-        vals = [diff[i] for i in idx]
-        cols = [GREEN if (sig[i] and diff[i] > 0) else (ORANGE if sig[i] else GREY)
-                for i in idx]
-        ax.bar(np.arange(len(idx)), vals, 0.62, color=cols)
-        ax.axhline(0, color=INK, linewidth=1)
-        ax.set_xticks(np.arange(len(idx)))
-        ax.set_xticklabels([labels[i] for i in idx], rotation=20)
-        ax.set_title(title, fontsize=10)
-    axL.set_ylabel('nadwyżka nad grupą kontrolną [%]')
-    fig.supxlabel('horyzont po opublikowaniu wpisu', fontsize=10, y=-0.06)
-    from matplotlib.patches import Patch
-    # Legend goes in the right panel's empty lower-left corner: the left panel
-    # is full of bars and the label would sit on top of them.
-    axR.legend(handles=[Patch(color=GREEN, label='istotny wzrost'),
-                        Patch(color=GREY, label='nieistotne'),
-                        Patch(color=ORANGE, label='istotne odwrócenie')],
-               loc='lower left', fontsize=8, bbox_to_anchor=(-0.02, 0.02))
-    fig.suptitle('Efekt uwagi: wzmianka podnosi kurs, po czym ruch się cofa', y=1.02)
+        x = np.arange(len(idx))
+        # Colour encodes the GROUP, never the outcome - a bar must not change
+        # identity because its p-value did. Significance rides on the asterisk.
+        ax.bar(x - W / 2 - 0.01, [doge[i] for i in idx], W, color=GREEN,
+               label='wpisy o Dogecoinie', zorder=3)
+        ax.bar(x + W / 2 + 0.01, [ctrl[i] for i in idx], W, color=GREY,
+               label='kontrola: pozostałe wpisy Muska', zorder=3)
+        top = max(max(doge[i], ctrl[i]) for i in idx)
+        for k, i in enumerate(idx):
+            for off, v in [(-W / 2 - 0.01, doge[i]), (W / 2 + 0.01, ctrl[i])]:
+                ax.text(k + off, v + top * 0.035, f'{v:+.1f}', ha='center',
+                        fontsize=7, color=INK)
+            if sig[i]:
+                ax.text(k, top * 1.16, '*', ha='center', fontsize=13, color=INK)
+        ax.axhline(0, color=INK, linewidth=1, zorder=4)
+        ax.set_xticks(x)
+        ax.set_xticklabels([spec[i][1] for i in idx], rotation=20, fontsize=8.5)
+        ax.set_ylim(0, top * 1.30)
+    # Shade the placebo column so it reads as "before the tweet", not another horizon.
+    axL.axvspan(-0.5, 0.5, color=GREY, alpha=0.09, zorder=0)
+    axL.set_ylabel('średnia zmiana kursu DOGE [%]')
+    axL.set_title('przed wpisem  |  natychmiastowa reakcja', fontsize=10)
+    axR.set_title('horyzont dłuższy', fontsize=10)
+    # Figure-level legend: inside the left panel it landed on the significance
+    # asterisks, which sit in the same free band above the bars.
+    handles, lbls = axL.get_legend_handles_labels()
+    fig.legend(handles, lbls, loc='upper center', ncol=2, fontsize=8.5,
+               bbox_to_anchor=(0.5, 1.005))
+    fig.supxlabel('okno wokół publikacji wpisu     (* różnica istotna, p < 0,05)',
+                  fontsize=9, y=-0.04)
+    fig.suptitle('Efekt uwagi: wzmianka podnosi kurs, ale wydźwięk wpisu nie ma znaczenia',
+                 y=1.10)
     fig.tight_layout()
     save(fig, 5, 'dogecoin_uwaga',
-         'Nadwyżkowa zmiana kursu Dogecoina po wpisach dotyczących tej kryptowaluty '
-         'względem pozostałych wpisów tego samego autora. Wzrost jest natychmiastowy '
-         'i istotny, zanika w ciągu czterech godzin, a po tygodniu przechodzi w istotne '
-         'odwrócenie — zgodnie z przewidywaniem teorii uwagi. Wpisy pozytywne '
+         'Średnia zmiana kursu Dogecoina po wpisach Elona Muska dotyczących tej '
+         'kryptowaluty (zielone) i po pozostałych jego wpisach z tego samego okresu '
+         '(szare, grupa kontrolna). Skrajnie lewa para to test placebo — okno godziny '
+         'PRZED publikacją: obie grupy są nieodróżnialne (+0,79% wobec +0,32%, p = 0,33), '
+         'co wyklucza odwrotną przyczynowość, czyli publikowanie wpisów w reakcji na '
+         'trwający już ruch kursu. Po publikacji różnica pojawia się natychmiast '
+         '(+2,23% wobec +0,11% w ciągu 5 minut) i zanika w ciągu czterech godzin. '
+         'W horyzoncie tygodniowym grupa z Dogecoinem nie spada — zatrzymuje się na '
+         '+7,0%, podczas gdy kontrola dochodzi do +17,3%; odwrócenie polega więc na '
+         'pozostaniu w tyle za rynkiem, nie na załamaniu kursu. Wpisy pozytywne '
          'i negatywne dają ten sam efekt, co wyklucza wydźwięk jako kanał oddziaływania. '
          'Zastrzeżenie: przy 101 zdarzeniach okna tygodniowe zachodzą na siebie.')
 

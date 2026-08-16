@@ -22,7 +22,7 @@ Jakość prognozy luki otwarcia dla obserwacji nieużytych w estymacji. W najost
 
 ## Rys. 5. (dogecoin_uwaga)
 
-Nadwyżkowa zmiana kursu Dogecoina po wpisach dotyczących tej kryptowaluty względem pozostałych wpisów tego samego autora. Wzrost jest natychmiastowy i istotny, zanika w ciągu czterech godzin, a po tygodniu przechodzi w istotne odwrócenie — zgodnie z przewidywaniem teorii uwagi. Wpisy pozytywne i negatywne dają ten sam efekt, co wyklucza wydźwięk jako kanał oddziaływania. Zastrzeżenie: przy 101 zdarzeniach okna tygodniowe zachodzą na siebie.
+Średnia zmiana kursu Dogecoina po wpisach Elona Muska dotyczących tej kryptowaluty (zielone) i po pozostałych jego wpisach z tego samego okresu (szare, grupa kontrolna). Skrajnie lewa para to test placebo — okno godziny PRZED publikacją: obie grupy są nieodróżnialne (+0,79% wobec +0,32%, p = 0,33), co wyklucza odwrotną przyczynowość, czyli publikowanie wpisów w reakcji na trwający już ruch kursu. Po publikacji różnica pojawia się natychmiast (+2,23% wobec +0,11% w ciągu 5 minut) i zanika w ciągu czterech godzin. W horyzoncie tygodniowym grupa z Dogecoinem nie spada — zatrzymuje się na +7,0%, podczas gdy kontrola dochodzi do +17,3%; odwrócenie polega więc na pozostaniu w tyle za rynkiem, nie na załamaniu kursu. Wpisy pozytywne i negatywne dają ten sam efekt, co wyklucza wydźwięk jako kanał oddziaływania. Zastrzeżenie: przy 101 zdarzeniach okna tygodniowe zachodzą na siebie.
 
 ## Rys. 6. (reddit_opoznienie)
 
