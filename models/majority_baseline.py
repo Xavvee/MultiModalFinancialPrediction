@@ -54,4 +54,6 @@ def run(ticker, results_dir):
     plt.savefig(save_path)
     plt.close()
 
-    return da
+    return {'name': f'Majority ({label})', 'dates': test.index,
+            'y_true': test.values, 'y_pred': predictions,
+            'is_stationary': True, 'rmse': None}

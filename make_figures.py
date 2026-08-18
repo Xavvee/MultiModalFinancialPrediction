@@ -419,27 +419,63 @@ def fig07_peruser():
 
 # --------------------------------------------------------------------------- #
 def fig08_ablation():
-    """Does sentiment improve the model? RECORDED (30 network trainings)."""
-    labels = ['tylko cena', 'cena + sentyment', '„zawsze wzrost”']
-    vals = [54.49, 54.76, 54.89]
-    sd = [1.95, 0.90, 0]
-    fig, ax = plt.subplots(figsize=(7.2, 3.4))
-    colours = [BLUE, GREEN, ORANGE]
-    ax.barh(np.arange(3), vals, 0.5, color=colours,
-            xerr=[sd, [0, 0, 0]], error_kw={'ecolor': INK, 'capsize': 4, 'alpha': 0.6})
-    ax.axvline(54.89, color=ORANGE, linestyle='--', linewidth=1.5)
-    ax.set_yticks(np.arange(3))
+    """Does sentiment improve the model? Reads the ablation's own output file.
+
+    Hardcoding these numbers is how the previous version drifted: it still showed
+    a 3-seed run on 1560 days long after the experiment had been redone with 20
+    seeds on 197 days. Prefer results/ablation_threeway_summary.json, written by
+    models/ablation_threeway.py; fall back to the recorded 20-seed values only so
+    the figure still builds on a fresh clone, where results/ is gitignored.
+    """
+    import json
+    order = ['price', '+finbert', '+roberta', '+both']
+    labels = ['tylko cena', '+ FinBERT', '+ RoBERTa', '+ oba strumienie']
+    try:
+        with open('results/ablation_threeway_summary.json') as fh:
+            s = json.load(fh)
+        vals = [s['variants'][k]['mean_da'] for k in order]
+        sd = [s['variants'][k]['sd_da'] for k in order]
+        majority, n_seeds = s['majority_da'], s['n_seeds']
+        n_test, src_note = s.get('n_test_days'), 'przeliczone'
+    except (FileNotFoundError, KeyError):
+        vals = [51.19, 49.85, 49.42, 50.15]
+        sd = [2.85, 3.14, 2.39, 3.42]
+        majority, n_seeds, n_test, src_note = 48.22, 20, 197, 'RECORDED'
+
+    fig, ax = plt.subplots(figsize=(7.2, 3.6))
+    # Blue marks the model without sentiment; the three variants that add it are
+    # one grey group because no pairwise difference between them survives
+    # correction - colouring them separately would imply a ranking that is noise.
+    colours = [BLUE] + [GREY] * 3
+    y = np.arange(len(order))
+    ax.barh(y, vals, 0.55, color=colours, xerr=[sd, sd],
+            error_kw={'ecolor': INK, 'capsize': 4, 'alpha': 0.6}, zorder=3)
+    ax.axvline(majority, color=ORANGE, linestyle='--', linewidth=1.5,
+               label=f'baseline większościowy ({majority:.2f}%)', zorder=2)
+    ax.axvline(50, color=INK, linestyle=':', linewidth=1.2,
+               label='czysty przypadek (50%)', zorder=2)
+    # Labels sit inside the bars: placed past the whiskers they collided with the
+    # legend, and the whisker end is not the number being reported anyway.
+    for i, v in enumerate(vals):
+        ax.text(v - 0.2, i, f'{v:.2f}%', va='center', ha='right',
+                fontsize=8.5, color='white', fontweight='bold', zorder=4)
+    ax.set_yticks(y)
     ax.set_yticklabels(labels)
     ax.invert_yaxis()
-    ax.set_xlim(50, 57)
+    ax.set_xlim(44, 57)
     ax.set_xlabel('trafność kierunkowa poza próbą [%]')
     ax.set_title('Ablacja: dodanie sentymentu nie poprawia prognozy kierunku')
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.22), ncol=2, fontsize=8.5)
+    fig.tight_layout()
     save(fig, 8, 'ablacja',
-         'Trafność kierunkowa dwóch identycznych sieci GRU różniących się wyłącznie '
-         'dostępem do strumieni sentymentu, uśredniona z trzech ziaren losowych na '
-         '1560 dniach testowych. Różnica wynosi 0,28 punktu procentowego przy '
-         'p = 0,86, a oba warianty pozostają poniżej trywialnej stałej predykcji '
-         '(linia przerywana). RECORDED: wartości z eksperymentu ablacyjnego.')
+         f'Trafność kierunkowa czterech identycznych sieci GRU różniących się wyłącznie '
+         f'zestawem wejść, uśredniona z {n_seeds} ziaren losowych na {n_test} dniach '
+         f'testowych; wąsy to odchylenie standardowe między ziarnami. Żaden wariant '
+         f'z sentymentem nie przewyższa modelu opartego na samej cenie, a po korekcie '
+         f'Bonferroniego dla czterech porównań wobec baseline\'u większościowego '
+         f'(linia przerywana) przechodzi wyłącznie wariant bez sentymentu. Wobec '
+         f'czystego przypadku (linia kropkowana) żaden wariant nie jest odróżnialny '
+         f'w teście dwumianowym. Liczby: {src_note}.')
 
 
 # --------------------------------------------------------------------------- #

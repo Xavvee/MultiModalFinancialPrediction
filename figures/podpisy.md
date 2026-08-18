@@ -34,7 +34,7 @@ Wynik przeszukania wszystkich kont aktywnych przez co najmniej 25 dni (54 608 te
 
 ## Rys. 8. (ablacja)
 
-Trafność kierunkowa dwóch identycznych sieci GRU różniących się wyłącznie dostępem do strumieni sentymentu, uśredniona z trzech ziaren losowych na 1560 dniach testowych. Różnica wynosi 0,28 punktu procentowego przy p = 0,86, a oba warianty pozostają poniżej trywialnej stałej predykcji (linia przerywana). RECORDED: wartości z eksperymentu ablacyjnego.
+Trafność kierunkowa czterech identycznych sieci GRU różniących się wyłącznie zestawem wejść, uśredniona z 20 ziaren losowych na 197 dniach testowych; wąsy to odchylenie standardowe między ziarnami. Żaden wariant z sentymentem nie przewyższa modelu opartego na samej cenie, a po korekcie Bonferroniego dla czterech porównań wobec baseline'u większościowego (linia przerywana) przechodzi wyłącznie wariant bez sentymentu. Wobec czystego przypadku (linia kropkowana) żaden wariant nie jest odróżnialny w teście dwumianowym. Liczby: RECORDED.
 
 ## Rys. 9. (test_placebo)
 

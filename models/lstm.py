@@ -20,11 +20,17 @@ def run(ticker, results_dir):
     prices_series = get_data(ticker)
     dataset = prices_series.values.reshape(-1, 1)
 
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    dataset_scaled = scaler.fit_transform(dataset)
+    # Split BEFORE fitting the scaler, then fit on the training split only.
+    # fit_transform() on the whole series lets the scaler see the test period's
+    # min and max, which is test-set information leaking into training. Test
+    # prices outside the training range will scale outside [0, 1] - that is the
+    # correct, honest behaviour, not a bug.
+    train_size = int(len(dataset) * 0.8)
+    train_raw, test_raw = dataset[0:train_size, :], dataset[train_size:len(dataset), :]
 
-    train_size = int(len(dataset_scaled) * 0.8)
-    train_data, test_data = dataset_scaled[0:train_size, :], dataset_scaled[train_size:len(dataset), :]
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    train_data = scaler.fit_transform(train_raw)
+    test_data = scaler.transform(test_raw)
 
     LOOK_BACK = 15
     X_train, y_train = create_dataset(train_data, LOOK_BACK)
@@ -53,3 +59,7 @@ def run(ticker, results_dir):
 
     save_path = os.path.join(results_dir, f"LSTM_{ticker}.png")
     plot_prediction(original_train_series, original_test_series, prediction_series, f"{ticker}: LSTM Price", save_path, "RMSE", rmse)
+
+    return {'name': 'LSTM (prices)', 'dates': test_dates,
+            'y_true': y_test_inv[0], 'y_pred': test_predict[:, 0],
+            'is_stationary': False, 'rmse': rmse}

@@ -2,8 +2,9 @@ import os
 import time
 import shutil
 import sentiment_ab_test
-from models import (random_walk, majority_baseline, arima, arima_stationary,
-                    lstm, lstm_stationary, gru_multimodal, dashboard)
+from models import (random_walk, majority_baseline, persistence_baseline,
+                    arima, arima_stationary, lstm, lstm_stationary,
+                    gru_multimodal, dashboard, benchmark_table)
 
 RESULTS_DIR = "results"
 ASSETS = ["BTC-USD", "ETH-USD", "^GSPC"]
@@ -43,29 +44,41 @@ def main():
             if not os.path.exists(asset_dir):
                 os.makedirs(asset_dir)
 
+            # Every run() returns its dated predictions so the benchmark table
+            # can score them all on one common window (see models/benchmark_table.py).
+            collected = []
+
             # 1. Random Walk
-            random_walk.run(ticker, asset_dir)
+            collected.append(random_walk.run(ticker, asset_dir))
 
             # 1b. Majority baseline - the directional bar every model must clear
-            majority_baseline.run(ticker, asset_dir)
+            collected.append(majority_baseline.run(ticker, asset_dir))
+
+            # 1c. Persistence baseline - the random walk's measurable counterpart
+            collected.append(persistence_baseline.run(ticker, asset_dir))
 
             # 2. ARIMA
-            arima.run(ticker, asset_dir)
+            collected.append(arima.run(ticker, asset_dir))
 
             # 3. ARIMA (Returns)
-            arima_stationary.run(ticker, asset_dir)
+            collected.append(arima_stationary.run(ticker, asset_dir))
 
             # 4. LSTM (Prices)
-            lstm.run(ticker, asset_dir)
-            
+            collected.append(lstm.run(ticker, asset_dir))
+
             # 5. LSTM (Returns)
-            lstm_stationary.run(ticker, asset_dir)
+            collected.append(lstm_stationary.run(ticker, asset_dir))
 
             # 6. Multi-Modal GRU (Returns + Dual-Stream Sentiment)
-            gru_multimodal.run(ticker, asset_dir, dataset_pkl='data/old_dataset/processed/full_dataset_weighted.pkl')
+            collected.append(gru_multimodal.run(
+                ticker, asset_dir,
+                dataset_pkl='data/old_dataset/processed/full_dataset_weighted.pkl'))
 
             # 7. DASHBOARD
             dashboard.run(ticker, asset_dir)
+
+            # 8. One comparable table across all of the above
+            benchmark_table.build(collected, ticker, asset_dir)
             
         except Exception as e:
             print(f"CRITICAL ERROR for {ticker}: {e}")
